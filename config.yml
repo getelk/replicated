@@ -1,0 +1,242 @@
+# ELK Vendor Config Options
+
+#properties:
+#  - name: url
+#    value: {{ ConfigOptionEquals "https_enabled" "1" }}https{{ else }}http{{ end }}://{{ ConfigOption "hostname" }}/index.html#/dashboard/file/logstash.json
+
+groups:
+  - name: hostname
+    title: Hostname
+    description: Ensure this domain name is routable on your network.
+    items:
+      - name: hostname
+        title: Hostname
+        type: text
+        required: true
+
+  - name: authentication
+    title: Authentication
+    description: >
+      Have an existing user database to connect to?  Configure it below to replace the default anonymous connections.
+    items:
+      - name: authentication_type
+        type: select_one
+        items:
+          - name: authentication_type_anonymous_enabled
+            title: Anonymous
+            type: bool
+            default: "1"
+
+  - name: privacy
+    title: Privacy
+    items:
+      - name: http_enabled
+        title: HTTP Enabled
+        type: bool
+        default: "1"
+        description: >
+          When enabled, Kibana will listen for and respond to requests on the HTTP protocol (port 80).
+      - name: https_enabled
+        title: HTTPS Enabled
+        type: bool
+        description: >
+          A valid x509 SSL certificate and private key files are required to use this option. The certificate and key must be in PEM format. The key must
+          be *unencrypted*.
+        recommended: true
+        default: "0"
+      - name: /opt/certs/forwarder.key
+        title: Private Key File
+        type: file
+        required: true
+        affix: left
+        when: https_enabled=1
+      - name: /opt/certs/forwarder.crt
+        title: Certificate File
+        type: file
+        required: true
+        affix: right
+        when: https_enabled=1
+
+  - name: inputs
+    title: Inputs
+    description: Define inputs for logstash to create
+    items:
+      - name: inputs_enabled
+        title: Choose which inputs to enable for Logstash.
+        type: select_many
+        description: >
+          Inputs are how data gets into your Logstash system.  You can enable as many or as few as is relevant to your requirements.
+        items:
+          - name: logstash_input_collectd_enabled
+            title: collectd
+            type: bool
+            recommended: true
+            default: "1"
+          - name: logstash_input_ganglia_enabled
+            title: ganglia
+            type: bool
+            default: "0"
+          - name: logstash_input_generator_enabled
+            title: generator
+            type: bool
+            default: "0"
+          - name: logstash_input_log4j_enabled
+            title: log4j
+            type: bool
+            default: "0"
+          - name: logstash_input_redis_enabled
+            title: redis
+            type: bool
+            default: "0"
+          - name: logstash_input_snmp_enabled
+            title: snmp
+            type: bool
+            default: "0"
+          - name: logstash_input_syslog_enabled
+            title: syslog
+            type: bool
+            recommended: true
+            default: "1"
+          - name: logstash_input_tcp_enabled
+            title: tcp
+            type: bool
+            default: "0"
+          - name: logstash_input_udp_enabled
+            title: udp
+            type: bool
+            default: "0"
+          - name: logstash_input_unix_enabled
+            title: unix socket
+            type: bool
+            default: "0"
+      - name: logstash_input_collectd_port
+        title: Collectd listen port
+        type: text
+        default: "25826"
+        when: logstash_input_collectd_enabled=1
+      - name: logstash_input_ganglia_port
+        title: Ganglia listen port
+        type: text
+        default: "8649"
+        when: logstash_input_ganglia_enabled=1
+      - name: logstash_input_log4j_port
+        title: Log4j listen port
+        type: text
+        default: "4560"
+        when: logstash_input_log4j_enabled=1
+      - name: logstash_input_generator_count
+        title: Generator count
+        type: text
+        default: "1000"
+        when: logstash_input_generator_enabled=1
+      - name: logstash_input_redis_host
+        title: Redis input host
+        type: text
+        default: "127.0.0.1"
+        when: logstash_input_redis_enabled=1
+      - name: logstash_input_redis_key
+        title: Redis key to monitor
+        type: text
+        default: "logstash"
+        when: logstash_input_redis_enabled=1
+      - name: logstash_input_snmp_port
+        title: SNMP listen port
+        type: text
+        default: "1062"
+        when: logstash_input_snmp_enabled=1
+      - name: logstash_input_syslog_port
+        title: Syslog listen port
+        type: text
+        default: "514"
+        when: logstash_input_syslog_enabled=1
+      - name: logstash_input_tcp_port
+        title: TCP listen port
+        type: text
+        when: logstash_input_tcp_enabled=1
+      - name: logstash_input_udp_port
+        title: UDP listen port
+        type: text
+        when: logstash_input_udp_enabled=1
+      - name: logstash_input_unix_path
+        title: Path of unix socket
+        type: text
+        when: logstash_input_unix_enabled=1
+
+  - name: filters
+    title: Filters
+    description: Define filters for logstash
+    items:
+      - name: filters_enabled
+        title: Choose which filters to enable for Logstash
+        type: select_many
+        description: >
+          Filters are used to add or remove data from events in your logstash system.  You can enable as many or as few as you need.
+        items:
+          - name: logstash_filter_anonymize_enabled
+            title: anonymize
+            type: bool
+            default: "0"
+          - name: logstash_filter_date_enabled
+            title: date
+            type: bool
+            default: "0"
+          - name: logstash_filter_geoip_enabled
+            title: geoip
+            type: bool
+            default: "0"
+          - name: logstash_filter_json_enabled
+            title: json
+            type: bool
+            default: "0"
+      - name: logstash_filter_anonymize_key
+        title: Anonymize key
+        description: >
+          The hashing key to use.  For more information see the [Logstash documentation](http://logstash.net/docs/1.4.2/filters/anonymize#key)
+        type: text
+        default: ""
+        when: logstash_filter_anonymize_enabled=1
+      - name: logstash_filter_anonymize_fields
+        title: Anonymize fields
+        description: >
+          The fields to be anonymized.  For more information see the [Logstash documentation](http://logstash.net/docs/1.4.2/filters/anonymize#fields)
+        type: text
+        default: "[]"
+        when: logstash_filter_anonymize_enabled=1
+      - name: logstash_filter_geoip_source
+        title: Geoip source
+        description: >
+          The field containing the IP address or hostname to map via geoip.  For more information see the [Logstash documentation](http://logstash.net/docs/1.4.2/filters/geoip#source)
+        type: text
+        default: ""
+        when: logstash_filter_geoip_enabled=1
+      - name: logstash_filter_json_source
+        title: Json source
+        description: >
+          The configuration for the JSON filter.  For more information see the [Logstash documentation](http://logstash.net/docs/1.4.2/filters/json#source)
+        type: text
+        default: ""
+        when: logstash_filter_json_enabled=1
+  - name: outputs
+    title: Outputs
+    description: Define additional outputs for logstash to create.  There is already an output to the local ElasticSearch instance.
+    items:
+      - name: outputs_enabled
+        title: Choose which additional outputs to enable for Logstash
+        type: select_many
+        description: >
+          Outputs provide the ability to pull metrics and events from your logs and deliver them to other systems.
+        items:
+          - name: logstash_output_graphite_enabled
+            title: graphite
+            type: bool
+            default: "0"
+      - name: logstash_output_graphite_host
+        title: Graphite host
+        type: text
+        default: 127.0.0.1
+        when: logstash_output_graphite_enabled=1
+      - name: logstash_output_graphite_port
+        title: Graphite port
+        type: text
+        default: "2003"
+        when: logstash_output_graphite_enabled=1
