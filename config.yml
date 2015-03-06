@@ -1,242 +1,847 @@
-# ELK Vendor Config Options
+name: ""
+label: ""
+release_notes: ""
+components:
+- name: Elasticsearch
+  containers:
+  - source: public
+    image_name: getelk/elasticsearch
+    version: 1.4.4-9
+    cmd: ""
+    publish_events:
+    - name: Container getelk/elasticsearch started
+      trigger: container-start
+      data: ""
+      subscriptions:
+      - component: Logstash & Kibana
+        container: getelk/logstash
+        action: start
+      - component: Logstash & Kibana
+        container: getelk/kibana
+        action: start
+    config_files:
+    - filename: /elasticsearch/config/elasticsearch.yml
+      contents: |
+        path:
+          data: /data/data
+          logs: /data/log
+          plugins: /data/plugins
+          work: /data/work
+        http.cors.enabled: true
+        http.cors.allow-origin: http://{{ ConfigOption "hostname" }}
+    customer_files: []
+    env_vars: []
+    ports:
+    - private_port: "9200"
+      public_port: "9200"
+      port_type: tcp
+      when: ""
+    volumes: []
+    support_files: []
+- name: Logstash & Kibana
+  containers:
+  - source: public
+    image_name: getelk/logstash
+    version: 1.4.2-4
+    cmd: ""
+    publish_events:
+    - name: Container getelk/logstash started
+      trigger: container-start
+      data: ""
+      subscriptions: []
+    config_files:
+    - filename: /opt/conf/logstash.conf
+      contents: |
+        input {
+          {{ if ConfigOptionEquals "logstash_input_collectd_enabled" "1" }}
+          collectd {
+            typesdb => ["/opt/collectd-types.db"]
+            port => {{ ConfigOption "logstash_input_collectd_port" }}
+          }
+          {{ end }}
+          {{ if ConfigOptionEquals "logstash_input_ganglia_enabled" "1" }}
+          ganglia {
+            port => {{ ConfigOption "logstash_input_ganglia_port" }}
+          }
+          {{ end }}
+          {{ if ConfigOptionEquals "logstash_input_generator_enabled" "1" }}
+          generator {
+            count => {{ ConfigOption "logstash_input_generator_count" }}
+          }
+          {{ end }}
+          {{ if ConfigOptionEquals "logstash_input_log4j_enabled" "1" }}
 
-#properties:
-#  - name: url
-#    value: {{ ConfigOptionEquals "https_enabled" "1" }}https{{ else }}http{{ end }}://{{ ConfigOption "hostname" }}/index.html#/dashboard/file/logstash.json
+          {{ end }}
+          {{ if ConfigOptionEquals "logstash_input_redis_enabled" "1" }}
+          log4j {
+            port => {{ ConfigOption "logstash_input_log4j_port" }}
+          }
+          {{ end }}
+          {{ if ConfigOptionEquals "logstash_input_snmp_enabled" "1" }}
+          snmptrap {
+            port => {{ ConfigOption "logstash_input_snmp_port" }}
+          }
+          {{ end }}
+          {{ if ConfigOptionEquals "logstash_input_syslog_enabled" "1" }}
+          syslog {
+            port => {{ ConfigOption "logstash_input_syslog_port" }}
+          }
+          {{ end }}
+          {{ if ConfigOptionEquals "logstash_input_tcp_enabled" "1" }}
+          tcp {
+            port => {{ ConfigOption "logstash_input_tcp_port" }}
+          }
+          {{ end }}
+          {{ if ConfigOptionEquals "logstash_input_udp_enabled" "1" }}
+          udp {
+            port => {{ ConfigOption "logstash_input_udp_port" }}
+          }
+          {{ end }}
+          {{ if ConfigOptionEquals "logstash_input_unix_enabled" "1" }}
+          unix {
+            path => {{ ConfigOption "logstash_input_unix_path" }}
+          }
+          {{ end }}
+        }
 
-groups:
+        filter {
+          {{ if ConfigOptionEquals "logstash_filter_anonymize_enabled" "1" }}
+          anonymize {
+            fields => {{ ConfigOption "logstash_filter_anonymize_fields" }}
+            key => "{{ ConfigOption "logstash_filter_anonymize_key" }}"
+          }
+          {{ end }}
+          {{ if ConfigOptionEquals "logstash_filter_date_enabled" "1" }}
+          date {
+          }
+          {{ end }}
+          {{ if ConfigOptionEquals "logstash_filter_geoip_enabled" "1" }}
+          geoip {
+            source => "{{ ConfigOption "logstash_filter_geoip_source" }}"
+          }
+          {{ end }}
+          {{ if ConfigOptionEquals "logstash_filter_json_enabled" "1" }}
+          json {
+            source => "{{ ConfigOption "logstash_filter_json_source"}}"
+          }
+          {{ end }}
+        }
+
+        output {
+          elasticsearch {
+            host => "{{ HostPrivateIpAddress "Elasticsearch" "getelk/elasticsearch" }}"
+            port => "{{ ContainerExposedPort "Elasticsearch" "getelk/elasticsearch" "9300" }}"
+          }
+          {{ if ConfigOptionEquals "logstash_output_graphite_enabled" "1" }}
+          graphite {
+            host => "{{ ConfigOption "logstash_output_graphite_host" }}"
+            port => "{{ ConfigOption "logstash_output_graphite_port" }}"
+          }
+          {{ end }}
+        }
+    customer_files: []
+    env_vars: []
+    ports:
+    - private_port: '{{ ConfigOption "logstash_input_collectd_port" }}'
+      public_port: '{{ ConfigOption "logstash_input_collectd_port" }}'
+      port_type: tcp
+      when: '{{ ConfigOptionEquals "logstash_input_collectd_enabled" "1" }}'
+    - private_port: '{{ ConfigOption "logstash_input_tcp_port" }}'
+      public_port: '{{ ConfigOption "logstash_input_tcp_port" }}'
+      port_type: tcp
+      when: '{{ ConfigOptionEquals "logstash_input_tcp_enabled" "1" }}'
+    - private_port: '{{ ConfigOption "logstash_input_udp_port" }}'
+      public_port: '{{ ConfigOption "logstash_input_udp_port" }}'
+      port_type: tcp
+      when: '{{ ConfigOptionEquals "logstash_input_udp_enabled" "1" }}'
+    - private_port: '{{ ConfigOption "logstash_input_snmp_port" }}'
+      public_port: '{{ ConfigOption "logstash_input_snmp_port" }}'
+      port_type: tcp
+      when: '{{ ConfigOptionEquals "logstash_input_snmp_enabled" "1" }}'
+    - private_port: '{{ ConfigOption "logstash_input_syslog_port" }}'
+      public_port: '{{ ConfigOption "logstash_input_syslog_port" }}'
+      port_type: tcp
+      when: '{{ ConfigOptionEquals "logstash_input_syslog_enabled" "1" }}'
+    - private_port: "25826"
+      public_port: "25826"
+      port_type: tcp
+      when: '{{ ConfigOptionEquals "logstash_input_collectd_enabled" "1" }}'
+    - private_port: '{{ ConfigOption "logstash_input_ganglia_port" }}'
+      public_port: '{{ ConfigOption "logstash_input_ganglia_port" }}'
+      port_type: tcp
+      when: '{{ ConfigOptionEquals "logstash_input_ganglia_enabled" "1" }}'
+    volumes: []
+    support_files: []
+  - source: public
+    image_name: getelk/kibana
+    version: 4.0.1-6
+    cmd: ""
+    publish_events:
+    - name: Container getelk/kibana started
+      trigger: container-start
+      data: ""
+      subscriptions:
+      - component: SSL/Authentication
+        container: nginx
+        action: start
+    config_files:
+    - filename: /opt/kibana/config/kibana.yml
+      contents: |
+        # Kibana is served by a back end server. This controls which port to use.
+        port: 5601
+
+        # The host to bind the server to.
+        host: "0.0.0.0"
+
+        # The Elasticsearch instance to use for all your queries.
+        elasticsearch_url: "http://{{ ConfigOption "hostname" }}:9200"
+
+        # preserve_elasticsearch_host true will send the hostname specified in `elasticsearch`. If you set it to false,
+        # then the host you use to connect to *this* Kibana instance will be sent.
+        elasticsearch_preserve_host: true
+
+        # Kibana uses an index in Elasticsearch to store saved searches, visualizations
+        # and dashboards. It will create a new index if it doesn't already exist.
+        kibana_index: ".kibana"
+
+        # If your Elasticsearch is protected with basic auth, this is the user credentials
+        # used by the Kibana server to perform maintence on the kibana_index at statup. Your Kibana
+        # users will still need to authenticate with Elasticsearch (which is proxied thorugh
+        # the Kibana server)
+        # kibana_elasticsearch_username: user
+        # kibana_elasticsearch_password: pass
+
+
+        # The default application to load.
+        default_app_id: "discover"
+
+        # Time in milliseconds to wait for responses from the back end or elasticsearch.
+        # This must be > 0
+        request_timeout: 300000
+
+        # Time in milliseconds for Elasticsearch to wait for responses from shards.
+        # Set to 0 to disable.
+        shard_timeout: 0
+
+        # Set to false to have a complete disregard for the validity of the SSL
+        # certificate.
+        verify_ssl: true
+
+        # If you need to provide a CA certificate for your Elasticsarech instance, put
+        # the path of the pem file here.
+        # ca: /path/to/your/CA.pem
+
+        # SSL for outgoing requests from the Kibana Server (PEM formatted)
+        # ssl_key_file: /path/to/your/server.key
+        # ssl_cert_file: /path/to/your/server.crt
+
+        # Set the path to where you would like the process id file to be created.
+        # pid_file: /var/run/kibana.pid
+
+
+        # Plugins that are included in the build, and no longer found in the plugins/ folder
+        bundled_plugin_ids:
+         - plugins/dashboard/index
+         - plugins/discover/index
+         - plugins/doc/index
+         - plugins/kibana/index
+         - plugins/markdown_vis/index
+         - plugins/metric_vis/index
+         - plugins/settings/index
+         - plugins/table_vis/index
+         - plugins/vis_types/index
+         - plugins/visualize/index
+    customer_files: []
+    env_vars: []
+    ports: []
+    volumes: []
+    support_files: []
+- name: SSL/Authentication
+  containers:
+  - source: public
+    image_name: nginx
+    version: 1.7.10
+    cmd: ""
+    publish_events:
+    - name: Container nginx started
+      trigger: container-start
+      data: ""
+      subscriptions: []
+    config_files:
+    - filename: /etc/nginx/nginx.conf
+      contents: |
+        user  nginx;
+        worker_processes  1;
+
+        error_log  /var/log/nginx/error.log warn;
+        pid        /var/run/nginx.pid;
+
+
+        events {
+            worker_connections  1024;
+        }
+
+
+        http {
+            include       /etc/nginx/mime.types;
+            default_type  application/octet-stream;
+
+            log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                              '$status $body_bytes_sent "$http_referer" '
+                              '"$http_user_agent" "$http_x_forwarded_for"';
+
+            access_log  /var/log/nginx/access.log  main;
+
+            sendfile        on;
+            #tcp_nopush     on;
+
+            keepalive_timeout  65;
+
+            #gzip  on;
+
+            ssl_session_cache   shared:SSL:10m;
+            ssl_session_timeout 10m;
+
+            {{ if ConfigOptionEquals "authentication_type" "authentication_type_password" }}
+              auth_basic           "Restricted";
+              auth_basic_user_file /etc/nginx/.htpasswd;
+            {{ end }}
+
+            {{ if ConfigOptionEquals "http_enabled" "1" }}
+              server {
+                  listen      80 default_server;
+                  server_name {{ ConfigOption "hostname" }};
+
+                  location / {
+                    proxy_pass       http://{{ HostPrivateIpAddress "Logstash & Kibana" "getelk/kibana" }}:{{ ContainerExposedPort "Logstash & Kibana" "getelk/kibana" "5601" }};
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  }
+
+              }
+            {{ end }}
+
+            {{ if ConfigOptionEquals "https_enabled" "1" }}
+              server {
+                  listen              443 ssl;
+                  server_name         {{ ConfigOption "hostname" }};
+                  keepalive_timeout   70;
+
+                  ssl_certificate     /opt/certs/forwarder.crt;
+                  ssl_certificate_key /opt/certs/forwarder.key;
+                  ssl_protocols       TLSv1 TLSv1.1 TLSv1.2;
+                  ssl_ciphers         HIGH:!aNULL:!MD5;
+
+                  location / {
+                    proxy_pass       http://{{ HostPrivateIpAddress "Logstash & Kibana" "getelk/kibana" }}:{{ ContainerExposedPort "Logstash & Kibana" "getelk/kibana" "5601" }};
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  }
+
+              }
+            {{ end }}
+        }
+    - filename: /etc/nginx/.htpasswd
+      contents: |
+        {{ ConfigOption "authentication_type_password_username" }}:{PLAIN}{{ ConfigOption "authentication_type_password_password" }}
+    customer_files:
+    - name: ssl_cert_file
+      filename: /opt/certs/forwarder.crt
+    - name: ssl_key_file
+      filename: /opt/certs/forwarder.key
+    env_vars: []
+    ports:
+    - private_port: "80"
+      public_port: "80"
+      port_type: tcp
+      when: '{{ ConfigOptionEquals "http_enabled" "1" }}'
+    - private_port: "443"
+      public_port: "443"
+      port_type: tcp
+      when: '{{ ConfigOptionEquals "https_enabled" "1" }}'
+    volumes: []
+    support_files: []
+config:
+- name: hostname
+  title: Hostname
+  description: Ensure this domain name is routable on your network.
+  items:
   - name: hostname
     title: Hostname
-    description: Ensure this domain name is routable on your network.
+    description: ""
+    recommended: false
+    default: ""
+    when: ""
+    type: text
+    affix: ""
+    required: true
+    items: []
+- name: authentication
+  title: Authentication
+  description: |
+    Have an existing user database to connect to?  Configure it below to replace the default anonymous connections.
+  items:
+  - name: authentication_type
+    title: ""
+    description: ""
+    recommended: false
+    default: authentication_type_anonymous
+    when: ""
+    type: select_one
+    affix: ""
+    required: false
     items:
-      - name: hostname
-        title: Hostname
-        type: text
-        required: true
-
-  - name: authentication
-    title: Authentication
-    description: >
-      Have an existing user database to connect to?  Configure it below to replace the default anonymous connections.
+    - name: authentication_type_anonymous
+      title: Anonymous
+      description: ""
+      recommended: false
+      when: ""
+      type: option
+      affix: ""
+      required: false
+    - name: authentication_type_password
+      title: Password
+      description: ""
+      recommended: false
+      when: ""
+      type: option
+      affix: ""
+      required: false
+  - name: authentication_type_password_username
+    title: Username
+    description: ""
+    recommended: false
+    default: ""
+    when: authentication_type=authentication_type_password
+    type: text
+    affix: ""
+    required: false
+    items: []
+  - name: authentication_type_password_password
+    title: Password
+    description: ""
+    recommended: false
+    default: ""
+    when: authentication_type=authentication_type_password
+    type: password
+    affix: ""
+    required: false
+    items: []
+- name: privacy
+  title: Privacy
+  description: ""
+  items:
+  - name: http_enabled
+    title: HTTP Enabled
+    description: |
+      When enabled, Kibana will listen for and respond to requests on the HTTP protocol (port 80).
+    recommended: false
+    default: "1"
+    when: ""
+    type: bool
+    affix: ""
+    required: false
+    items: []
+  - name: https_enabled
+    title: HTTPS Enabled
+    description: |
+      A valid x509 SSL certificate and private key files are required to use this option. The certificate and key must be in PEM format. The key must be *unencrypted*.
+    recommended: true
+    default: "0"
+    when: ""
+    type: bool
+    affix: ""
+    required: false
+    items: []
+  - name: ssl_key_file
+    title: Private Key File
+    description: ""
+    recommended: false
+    default: ""
+    when: https_enabled=1
+    type: file
+    affix: left
+    required: true
+    items: []
+  - name: ssl_cert_file
+    title: Certificate File
+    description: ""
+    recommended: false
+    default: ""
+    when: https_enabled=1
+    type: file
+    affix: right
+    required: true
+    items: []
+- name: inputs
+  title: Inputs
+  description: Define inputs for logstash to create
+  items:
+  - name: inputs_enabled
+    title: Choose which inputs to enable for Logstash.
+    description: |
+      Inputs are how data gets into your Logstash system.  You can enable as many or as few as is relevant to your requirements.
+    recommended: false
+    default: ""
+    when: ""
+    type: select_many
+    affix: ""
+    required: false
     items:
-      - name: authentication_type
-        type: select_one
-        items:
-          - name: authentication_type_anonymous_enabled
-            title: Anonymous
-            type: bool
-            default: "1"
-
-  - name: privacy
-    title: Privacy
+    - name: logstash_input_collectd_enabled
+      title: collectd
+      description: ""
+      recommended: true
+      default: "1"
+      when: ""
+      type: bool
+      affix: ""
+      required: false
+      items: []
+    - name: logstash_input_ganglia_enabled
+      title: ganglia
+      description: ""
+      recommended: false
+      default: "0"
+      when: ""
+      type: bool
+      affix: ""
+      required: false
+      items: []
+    - name: logstash_input_generator_enabled
+      title: generator
+      description: ""
+      recommended: false
+      default: "0"
+      when: ""
+      type: bool
+      affix: ""
+      required: false
+      items: []
+    - name: logstash_input_log4j_enabled
+      title: log4j
+      description: ""
+      recommended: false
+      default: "0"
+      when: ""
+      type: bool
+      affix: ""
+      required: false
+      items: []
+    - name: logstash_input_redis_enabled
+      title: redis
+      description: ""
+      recommended: false
+      default: "0"
+      when: ""
+      type: bool
+      affix: ""
+      required: false
+      items: []
+    - name: logstash_input_snmp_enabled
+      title: snmp
+      description: ""
+      recommended: false
+      default: "0"
+      when: ""
+      type: bool
+      affix: ""
+      required: false
+      items: []
+    - name: logstash_input_syslog_enabled
+      title: syslog
+      description: ""
+      recommended: true
+      default: "1"
+      when: ""
+      type: bool
+      affix: ""
+      required: false
+      items: []
+    - name: logstash_input_tcp_enabled
+      title: tcp
+      description: ""
+      recommended: false
+      default: "0"
+      when: ""
+      type: bool
+      affix: ""
+      required: false
+      items: []
+    - name: logstash_input_udp_enabled
+      title: udp
+      description: ""
+      recommended: false
+      default: "0"
+      when: ""
+      type: bool
+      affix: ""
+      required: false
+      items: []
+    - name: logstash_input_unix_enabled
+      title: unix socket
+      description: ""
+      recommended: false
+      default: "0"
+      when: ""
+      type: bool
+      affix: ""
+      required: false
+      items: []
+  - name: logstash_input_collectd_port
+    title: Collectd listen port
+    description: ""
+    recommended: false
+    default: "25826"
+    when: logstash_input_collectd_enabled=1
+    type: text
+    affix: ""
+    required: false
+    items: []
+  - name: logstash_input_ganglia_port
+    title: Ganglia listen port
+    description: ""
+    recommended: false
+    default: "8649"
+    when: logstash_input_ganglia_enabled=1
+    type: text
+    affix: ""
+    required: false
+    items: []
+  - name: logstash_input_log4j_port
+    title: Log4j listen port
+    description: ""
+    recommended: false
+    default: "4560"
+    when: logstash_input_log4j_enabled=1
+    type: text
+    affix: ""
+    required: false
+    items: []
+  - name: logstash_input_generator_count
+    title: Generator count
+    description: ""
+    recommended: false
+    default: "1000"
+    when: logstash_input_generator_enabled=1
+    type: text
+    affix: ""
+    required: false
+    items: []
+  - name: logstash_input_redis_host
+    title: Redis input host
+    description: ""
+    recommended: false
+    default: 127.0.0.1
+    when: logstash_input_redis_enabled=1
+    type: text
+    affix: ""
+    required: false
+    items: []
+  - name: logstash_input_redis_key
+    title: Redis key to monitor
+    description: ""
+    recommended: false
+    default: logstash
+    when: logstash_input_redis_enabled=1
+    type: text
+    affix: ""
+    required: false
+    items: []
+  - name: logstash_input_snmp_port
+    title: SNMP listen port
+    description: ""
+    recommended: false
+    default: "1062"
+    when: logstash_input_snmp_enabled=1
+    type: text
+    affix: ""
+    required: false
+    items: []
+  - name: logstash_input_syslog_port
+    title: Syslog listen port
+    description: ""
+    recommended: false
+    default: "514"
+    when: logstash_input_syslog_enabled=1
+    type: text
+    affix: ""
+    required: false
+    items: []
+  - name: logstash_input_tcp_port
+    title: TCP listen port
+    description: ""
+    recommended: false
+    default: ""
+    when: logstash_input_tcp_enabled=1
+    type: text
+    affix: ""
+    required: false
+    items: []
+  - name: logstash_input_udp_port
+    title: UDP listen port
+    description: ""
+    recommended: false
+    default: ""
+    when: logstash_input_udp_enabled=1
+    type: text
+    affix: ""
+    required: false
+    items: []
+  - name: logstash_input_unix_path
+    title: Path of unix socket
+    description: ""
+    recommended: false
+    default: ""
+    when: logstash_input_unix_enabled=1
+    type: text
+    affix: ""
+    required: false
+    items: []
+- name: filters
+  title: Filters
+  description: Define filters for logstash
+  items:
+  - name: filters_enabled
+    title: Choose which filters to enable for Logstash
+    description: |
+      Filters are used to add or remove data from events in your logstash system.  You can enable as many or as few as you need.
+    recommended: false
+    default: ""
+    when: ""
+    type: select_many
+    affix: ""
+    required: false
     items:
-      - name: http_enabled
-        title: HTTP Enabled
-        type: bool
-        default: "1"
-        description: >
-          When enabled, Kibana will listen for and respond to requests on the HTTP protocol (port 80).
-      - name: https_enabled
-        title: HTTPS Enabled
-        type: bool
-        description: >
-          A valid x509 SSL certificate and private key files are required to use this option. The certificate and key must be in PEM format. The key must
-          be *unencrypted*.
-        recommended: true
-        default: "0"
-      - name: /opt/certs/forwarder.key
-        title: Private Key File
-        type: file
-        required: true
-        affix: left
-        when: https_enabled=1
-      - name: /opt/certs/forwarder.crt
-        title: Certificate File
-        type: file
-        required: true
-        affix: right
-        when: https_enabled=1
-
-  - name: inputs
-    title: Inputs
-    description: Define inputs for logstash to create
+    - name: logstash_filter_anonymize_enabled
+      title: anonymize
+      description: ""
+      recommended: false
+      default: "0"
+      when: ""
+      type: bool
+      affix: ""
+      required: false
+      items: []
+    - name: logstash_filter_date_enabled
+      title: date
+      description: ""
+      recommended: false
+      default: "0"
+      when: ""
+      type: bool
+      affix: ""
+      required: false
+      items: []
+    - name: logstash_filter_geoip_enabled
+      title: geoip
+      description: ""
+      recommended: false
+      default: "0"
+      when: ""
+      type: bool
+      affix: ""
+      required: false
+      items: []
+    - name: logstash_filter_json_enabled
+      title: json
+      description: ""
+      recommended: false
+      default: "0"
+      when: ""
+      type: bool
+      affix: ""
+      required: false
+      items: []
+  - name: logstash_filter_anonymize_key
+    title: Anonymize key
+    description: |
+      The hashing key to use.  For more information see the [Logstash documentation](http://logstash.net/docs/1.4.2/filters/anonymize#key)
+    recommended: false
+    default: ""
+    when: logstash_filter_anonymize_enabled=1
+    type: text
+    affix: ""
+    required: false
+    items: []
+  - name: logstash_filter_anonymize_fields
+    title: Anonymize fields
+    description: |
+      The fields to be anonymized.  For more information see the [Logstash documentation](http://logstash.net/docs/1.4.2/filters/anonymize#fields)
+    recommended: false
+    default: '[]'
+    when: logstash_filter_anonymize_enabled=1
+    type: text
+    affix: ""
+    required: false
+    items: []
+  - name: logstash_filter_geoip_source
+    title: Geoip source
+    description: |
+      The field containing the IP address or hostname to map via geoip.  For more information see the [Logstash documentation](http://logstash.net/docs/1.4.2/filters/geoip#source)
+    recommended: false
+    default: ""
+    when: logstash_filter_geoip_enabled=1
+    type: text
+    affix: ""
+    required: false
+    items: []
+  - name: logstash_filter_json_source
+    title: Json source
+    description: |
+      The configuration for the JSON filter.  For more information see the [Logstash documentation](http://logstash.net/docs/1.4.2/filters/json#source)
+    recommended: false
+    default: ""
+    when: logstash_filter_json_enabled=1
+    type: text
+    affix: ""
+    required: false
+    items: []
+- name: outputs
+  title: Outputs
+  description: Define additional outputs for logstash to create.  There is already
+    an output to the local ElasticSearch instance.
+  items:
+  - name: outputs_enabled
+    title: Choose which additional outputs to enable for Logstash
+    description: |
+      Outputs provide the ability to pull metrics and events from your logs and deliver them to other systems.
+    recommended: false
+    default: ""
+    when: ""
+    type: select_many
+    affix: ""
+    required: false
     items:
-      - name: inputs_enabled
-        title: Choose which inputs to enable for Logstash.
-        type: select_many
-        description: >
-          Inputs are how data gets into your Logstash system.  You can enable as many or as few as is relevant to your requirements.
-        items:
-          - name: logstash_input_collectd_enabled
-            title: collectd
-            type: bool
-            recommended: true
-            default: "1"
-          - name: logstash_input_ganglia_enabled
-            title: ganglia
-            type: bool
-            default: "0"
-          - name: logstash_input_generator_enabled
-            title: generator
-            type: bool
-            default: "0"
-          - name: logstash_input_log4j_enabled
-            title: log4j
-            type: bool
-            default: "0"
-          - name: logstash_input_redis_enabled
-            title: redis
-            type: bool
-            default: "0"
-          - name: logstash_input_snmp_enabled
-            title: snmp
-            type: bool
-            default: "0"
-          - name: logstash_input_syslog_enabled
-            title: syslog
-            type: bool
-            recommended: true
-            default: "1"
-          - name: logstash_input_tcp_enabled
-            title: tcp
-            type: bool
-            default: "0"
-          - name: logstash_input_udp_enabled
-            title: udp
-            type: bool
-            default: "0"
-          - name: logstash_input_unix_enabled
-            title: unix socket
-            type: bool
-            default: "0"
-      - name: logstash_input_collectd_port
-        title: Collectd listen port
-        type: text
-        default: "25826"
-        when: logstash_input_collectd_enabled=1
-      - name: logstash_input_ganglia_port
-        title: Ganglia listen port
-        type: text
-        default: "8649"
-        when: logstash_input_ganglia_enabled=1
-      - name: logstash_input_log4j_port
-        title: Log4j listen port
-        type: text
-        default: "4560"
-        when: logstash_input_log4j_enabled=1
-      - name: logstash_input_generator_count
-        title: Generator count
-        type: text
-        default: "1000"
-        when: logstash_input_generator_enabled=1
-      - name: logstash_input_redis_host
-        title: Redis input host
-        type: text
-        default: "127.0.0.1"
-        when: logstash_input_redis_enabled=1
-      - name: logstash_input_redis_key
-        title: Redis key to monitor
-        type: text
-        default: "logstash"
-        when: logstash_input_redis_enabled=1
-      - name: logstash_input_snmp_port
-        title: SNMP listen port
-        type: text
-        default: "1062"
-        when: logstash_input_snmp_enabled=1
-      - name: logstash_input_syslog_port
-        title: Syslog listen port
-        type: text
-        default: "514"
-        when: logstash_input_syslog_enabled=1
-      - name: logstash_input_tcp_port
-        title: TCP listen port
-        type: text
-        when: logstash_input_tcp_enabled=1
-      - name: logstash_input_udp_port
-        title: UDP listen port
-        type: text
-        when: logstash_input_udp_enabled=1
-      - name: logstash_input_unix_path
-        title: Path of unix socket
-        type: text
-        when: logstash_input_unix_enabled=1
-
-  - name: filters
-    title: Filters
-    description: Define filters for logstash
-    items:
-      - name: filters_enabled
-        title: Choose which filters to enable for Logstash
-        type: select_many
-        description: >
-          Filters are used to add or remove data from events in your logstash system.  You can enable as many or as few as you need.
-        items:
-          - name: logstash_filter_anonymize_enabled
-            title: anonymize
-            type: bool
-            default: "0"
-          - name: logstash_filter_date_enabled
-            title: date
-            type: bool
-            default: "0"
-          - name: logstash_filter_geoip_enabled
-            title: geoip
-            type: bool
-            default: "0"
-          - name: logstash_filter_json_enabled
-            title: json
-            type: bool
-            default: "0"
-      - name: logstash_filter_anonymize_key
-        title: Anonymize key
-        description: >
-          The hashing key to use.  For more information see the [Logstash documentation](http://logstash.net/docs/1.4.2/filters/anonymize#key)
-        type: text
-        default: ""
-        when: logstash_filter_anonymize_enabled=1
-      - name: logstash_filter_anonymize_fields
-        title: Anonymize fields
-        description: >
-          The fields to be anonymized.  For more information see the [Logstash documentation](http://logstash.net/docs/1.4.2/filters/anonymize#fields)
-        type: text
-        default: "[]"
-        when: logstash_filter_anonymize_enabled=1
-      - name: logstash_filter_geoip_source
-        title: Geoip source
-        description: >
-          The field containing the IP address or hostname to map via geoip.  For more information see the [Logstash documentation](http://logstash.net/docs/1.4.2/filters/geoip#source)
-        type: text
-        default: ""
-        when: logstash_filter_geoip_enabled=1
-      - name: logstash_filter_json_source
-        title: Json source
-        description: >
-          The configuration for the JSON filter.  For more information see the [Logstash documentation](http://logstash.net/docs/1.4.2/filters/json#source)
-        type: text
-        default: ""
-        when: logstash_filter_json_enabled=1
-  - name: outputs
-    title: Outputs
-    description: Define additional outputs for logstash to create.  There is already an output to the local ElasticSearch instance.
-    items:
-      - name: outputs_enabled
-        title: Choose which additional outputs to enable for Logstash
-        type: select_many
-        description: >
-          Outputs provide the ability to pull metrics and events from your logs and deliver them to other systems.
-        items:
-          - name: logstash_output_graphite_enabled
-            title: graphite
-            type: bool
-            default: "0"
-      - name: logstash_output_graphite_host
-        title: Graphite host
-        type: text
-        default: 127.0.0.1
-        when: logstash_output_graphite_enabled=1
-      - name: logstash_output_graphite_port
-        title: Graphite port
-        type: text
-        default: "2003"
-        when: logstash_output_graphite_enabled=1
+    - name: logstash_output_graphite_enabled
+      title: graphite
+      description: ""
+      recommended: false
+      default: "0"
+      when: ""
+      type: bool
+      affix: ""
+      required: false
+      items: []
+  - name: logstash_output_graphite_host
+    title: Graphite host
+    description: ""
+    recommended: false
+    default: 127.0.0.1
+    when: logstash_output_graphite_enabled=1
+    type: text
+    affix: ""
+    required: false
+    items: []
+  - name: logstash_output_graphite_port
+    title: Graphite port
+    description: ""
+    recommended: false
+    default: "2003"
+    when: logstash_output_graphite_enabled=1
+    type: text
+    affix: ""
+    required: false
+    items: []
