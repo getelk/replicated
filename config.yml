@@ -182,7 +182,7 @@ components:
       data: ""
       subscriptions:
       - component: SSL/Authentication
-        container: nginx
+        container: getelk/auth
         action: start
     config_files:
     - filename: /opt/kibana/config/kibana.yml
@@ -302,17 +302,41 @@ components:
             ssl_session_cache   shared:SSL:10m;
             ssl_session_timeout 10m;
 
-            {{ if ConfigOptionEquals "authentication_type" "authentication_type_password" }}
-              auth_basic           "Restricted";
-              auth_basic_user_file /etc/nginx/.htpasswd;
-            {{ end }}
-
             {{ if ConfigOptionEquals "http_enabled" "1" }}
               server {
                   listen      80 default_server;
                   server_name {{ ConfigOption "hostname" }};
 
+                  # TODO: add for all except anonymous authentication type
+                  {{ if ConfigOptionEquals "authentication_type" "authentication_type_password" }}
+                  error_page 401 = @error401;
+                  location @error401 {
+                      return 302 $scheme://$server_name:$server_port/replicated-auth/sign-in;
+                  }
+
+                  location = /replicated-auth/sign-in {
+                      rewrite           .* /sign-in break;
+                      proxy_pass        http://{{ HostPrivateIpAddress "SSL/Authentication" "getelk/auth" }}:{{ ContainerExposedPort "SSL/Authentication" "getelk/auth" "8080" }};
+                      proxy_set_header  X-Real-IP $remote_addr;
+                      proxy_set_header  Host $host;
+                      proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+                  }
+
+                  location = /replicated-auth/authcheck {
+                      internal;
+
+                      rewrite           .* / break;
+                      proxy_pass        http://{{ HostPrivateIpAddress "SSL/Authentication" "getelk/auth" }}:{{ ContainerExposedPort "SSL/Authentication" "getelk/auth" "8080" }};
+                      proxy_set_header  X-Real-IP $remote_addr;
+                      proxy_set_header  Host $host;
+                      proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+                  }
+                  {{ end }}
+
                   location / {
+                    {{ if ConfigOptionEquals "authentication_type" "authentication_type_password" }}
+                    auth_request /replicated-auth/authcheck;
+                    {{ end }}
                     proxy_pass       http://{{ HostPrivateIpAddress "Logstash & Kibana" "getelk/kibana" }}:{{ ContainerExposedPort "Logstash & Kibana" "getelk/kibana" "5601" }};
                     proxy_set_header X-Real-IP $remote_addr;
                     proxy_set_header Host $host;
@@ -333,7 +357,36 @@ components:
                   ssl_protocols       TLSv1 TLSv1.1 TLSv1.2;
                   ssl_ciphers         HIGH:!aNULL:!MD5;
 
+                  # TODO: add for all except anonymous authentication type
+                  {{ if ConfigOptionEquals "authentication_type" "authentication_type_password" }}
+                  error_page 401 = @error401;
+                  location @error401 {
+                      return 302 $scheme://$server_name:$server_port/replicated-auth/sign-in;
+                  }
+
+                  location = /replicated-auth/sign-in {
+                      rewrite           .* /sign-in break;
+                      proxy_pass        http://{{ HostPrivateIpAddress "SSL/Authentication" "getelk/auth" }}:{{ ContainerExposedPort "SSL/Authentication" "getelk/auth" "8080" }};
+                      proxy_set_header  X-Real-IP $remote_addr;
+                      proxy_set_header  Host $host;
+                      proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+                  }
+
+                  location = /replicated-auth/authcheck {
+                      internal;
+
+                      rewrite           .* / break;
+                      proxy_pass        http://{{ HostPrivateIpAddress "SSL/Authentication" "getelk/auth" }}:{{ ContainerExposedPort "SSL/Authentication" "getelk/auth" "8080" }};
+                      proxy_set_header  X-Real-IP $remote_addr;
+                      proxy_set_header  Host $host;
+                      proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+                  }
+                  {{ end }}
+
                   location / {
+                    {{ if ConfigOptionEquals "authentication_type" "authentication_type_password" }}
+                    auth_request /replicated-auth/authcheck;
+                    {{ end }}
                     proxy_pass       http://{{ HostPrivateIpAddress "Logstash & Kibana" "getelk/kibana" }}:{{ ContainerExposedPort "Logstash & Kibana" "getelk/kibana" "5601" }};
                     proxy_set_header X-Real-IP $remote_addr;
                     proxy_set_header Host $host;
@@ -343,9 +396,6 @@ components:
               }
             {{ end }}
         }
-    - filename: /etc/nginx/.htpasswd
-      contents: |
-        {{ ConfigOption "authentication_type_password_username" }}:{PLAIN}{{ ConfigOption "authentication_type_password_password" }}
     customer_files:
     - name: ssl_cert_file
       filename: /opt/certs/forwarder.crt
@@ -361,6 +411,36 @@ components:
       public_port: "443"
       port_type: tcp
       when: '{{ ConfigOptionEquals "https_enabled" "1" }}'
+    volumes: []
+    support_files: []
+  - source: public
+    image_name: getelk/auth
+    version: 0.1.1
+    cmd: ""
+    publish_events:
+    - name: Container getelk/auth started
+      trigger: container-start
+      data: ""
+      subscriptions:
+      - component: SSL/Authentication
+        container: nginx
+        action: start
+    config_files:
+    - filename: /go/src/github.com/replicatedcom/replicated-auth/config.yaml
+      contents: |
+        hostaddress: :8080
+        {{ if ConfigOptionEquals "authentication_type" "authentication_type_password" }}
+        authtype: password
+        {{ else }}
+        authtype: anonymous
+        {{ end }}
+        cookiename: replicated-auth
+        expiration: 86400
+    customer_files: []
+    env_vars:
+    - name: REPLICATED_AUTH_PASSWORD
+      static_val: '{{ ConfigOption "authentication_type_password_password" }}'
+    ports: []
     volumes: []
     support_files: []
 config:
@@ -404,21 +484,11 @@ config:
     - name: authentication_type_password
       title: Password
       description: ""
-      recommended: false
+      recommended: true
       when: ""
       type: option
       affix: ""
       required: false
-  - name: authentication_type_password_username
-    title: Username
-    description: ""
-    recommended: false
-    default: ""
-    when: authentication_type=authentication_type_password
-    type: text
-    affix: ""
-    required: false
-    items: []
   - name: authentication_type_password_password
     title: Password
     description: ""
