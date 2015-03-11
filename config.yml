@@ -415,7 +415,7 @@ components:
     support_files: []
   - source: public
     image_name: getelk/auth
-    version: 0.1.1
+    version: 0.2.1
     cmd: ""
     publish_events:
     - name: Container getelk/auth started
@@ -426,7 +426,7 @@ components:
         container: nginx
         action: start
     config_files:
-    - filename: /go/src/github.com/replicatedcom/replicated-auth/config.yaml
+    - filename: /root/config.yaml
       contents: |
         hostaddress: :8080
         {{ if ConfigOptionEquals "authentication_type" "authentication_type_password" }}
