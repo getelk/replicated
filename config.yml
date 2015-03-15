@@ -1,6 +1,6 @@
-name: ""
-label: ""
-release_notes: ""
+name: "ELK"
+label: "4.0.1"
+release_notes: "Updated Kibana to 4.0.1 and Elasticsearch to 1.4.4"
 components:
 - name: Elasticsearch
   containers:
