@@ -105,26 +105,6 @@ components:
         }
 
         filter {
-          {{ if ConfigOptionEquals "logstash_filter_anonymize_enabled" "1" }}
-          anonymize {
-            fields => {{ ConfigOption "logstash_filter_anonymize_fields" }}
-            key => "{{ ConfigOption "logstash_filter_anonymize_key" }}"
-          }
-          {{ end }}
-          {{ if ConfigOptionEquals "logstash_filter_date_enabled" "1" }}
-          date {
-          }
-          {{ end }}
-          {{ if ConfigOptionEquals "logstash_filter_geoip_enabled" "1" }}
-          geoip {
-            source => "{{ ConfigOption "logstash_filter_geoip_source" }}"
-          }
-          {{ end }}
-          {{ if ConfigOptionEquals "logstash_filter_json_enabled" "1" }}
-          json {
-            source => "{{ ConfigOption "logstash_filter_json_source"}}"
-          }
-          {{ end }}
         }
 
         output {
@@ -132,12 +112,6 @@ components:
             host => "{{ HostPrivateIpAddress "Elasticsearch" "getelk/elasticsearch" }}"
             port => "{{ ContainerExposedPort "Elasticsearch" "getelk/elasticsearch" "9300" }}"
           }
-          {{ if ConfigOptionEquals "logstash_output_graphite_enabled" "1" }}
-          graphite {
-            host => "{{ ConfigOption "logstash_output_graphite_host" }}"
-            port => "{{ ConfigOption "logstash_output_graphite_port" }}"
-          }
-          {{ end }}
         }
     customer_files: []
     env_vars: []
@@ -766,151 +740,6 @@ config:
     recommended: false
     default: ""
     when: logstash_input_unix_enabled=1
-    type: text
-    affix: ""
-    required: false
-    items: []
-- name: filters
-  title: Filters
-  description: Define filters for logstash
-  items:
-  - name: filters_enabled
-    title: Choose which filters to enable for Logstash
-    description: |
-      Filters are used to add or remove data from events in your logstash system.  You can enable as many or as few as you need.
-    recommended: false
-    default: ""
-    when: ""
-    type: select_many
-    affix: ""
-    required: false
-    items:
-    - name: logstash_filter_anonymize_enabled
-      title: anonymize
-      description: ""
-      recommended: false
-      default: "0"
-      when: ""
-      type: bool
-      affix: ""
-      required: false
-      items: []
-    - name: logstash_filter_date_enabled
-      title: date
-      description: ""
-      recommended: false
-      default: "0"
-      when: ""
-      type: bool
-      affix: ""
-      required: false
-      items: []
-    - name: logstash_filter_geoip_enabled
-      title: geoip
-      description: ""
-      recommended: false
-      default: "0"
-      when: ""
-      type: bool
-      affix: ""
-      required: false
-      items: []
-    - name: logstash_filter_json_enabled
-      title: json
-      description: ""
-      recommended: false
-      default: "0"
-      when: ""
-      type: bool
-      affix: ""
-      required: false
-      items: []
-  - name: logstash_filter_anonymize_key
-    title: Anonymize key
-    description: |
-      The hashing key to use.  For more information see the [Logstash documentation](http://logstash.net/docs/1.4.2/filters/anonymize#key)
-    recommended: false
-    default: ""
-    when: logstash_filter_anonymize_enabled=1
-    type: text
-    affix: ""
-    required: false
-    items: []
-  - name: logstash_filter_anonymize_fields
-    title: Anonymize fields
-    description: |
-      The fields to be anonymized.  For more information see the [Logstash documentation](http://logstash.net/docs/1.4.2/filters/anonymize#fields)
-    recommended: false
-    default: '[]'
-    when: logstash_filter_anonymize_enabled=1
-    type: text
-    affix: ""
-    required: false
-    items: []
-  - name: logstash_filter_geoip_source
-    title: Geoip source
-    description: |
-      The field containing the IP address or hostname to map via geoip.  For more information see the [Logstash documentation](http://logstash.net/docs/1.4.2/filters/geoip#source)
-    recommended: false
-    default: ""
-    when: logstash_filter_geoip_enabled=1
-    type: text
-    affix: ""
-    required: false
-    items: []
-  - name: logstash_filter_json_source
-    title: Json source
-    description: |
-      The configuration for the JSON filter.  For more information see the [Logstash documentation](http://logstash.net/docs/1.4.2/filters/json#source)
-    recommended: false
-    default: ""
-    when: logstash_filter_json_enabled=1
-    type: text
-    affix: ""
-    required: false
-    items: []
-- name: outputs
-  title: Outputs
-  description: Define additional outputs for logstash to create.  There is already
-    an output to the local ElasticSearch instance.
-  items:
-  - name: outputs_enabled
-    title: Choose which additional outputs to enable for Logstash
-    description: |
-      Outputs provide the ability to pull metrics and events from your logs and deliver them to other systems.
-    recommended: false
-    default: ""
-    when: ""
-    type: select_many
-    affix: ""
-    required: false
-    items:
-    - name: logstash_output_graphite_enabled
-      title: graphite
-      description: ""
-      recommended: false
-      default: "0"
-      when: ""
-      type: bool
-      affix: ""
-      required: false
-      items: []
-  - name: logstash_output_graphite_host
-    title: Graphite host
-    description: ""
-    recommended: false
-    default: 127.0.0.1
-    when: logstash_output_graphite_enabled=1
-    type: text
-    affix: ""
-    required: false
-    items: []
-  - name: logstash_output_graphite_port
-    title: Graphite port
-    description: ""
-    recommended: false
-    default: "2003"
-    when: logstash_output_graphite_enabled=1
     type: text
     affix: ""
     required: false
