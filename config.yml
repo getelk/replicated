@@ -70,9 +70,6 @@ components:
           }
           {{ end }}
           {{ if ConfigOptionEquals "logstash_input_log4j_enabled" "1" }}
-
-          {{ end }}
-          {{ if ConfigOptionEquals "logstash_input_redis_enabled" "1" }}
           log4j {
             port => {{ ConfigOption "logstash_input_log4j_port" }}
           }
@@ -574,16 +571,6 @@ config:
       affix: ""
       required: false
       items: []
-    - name: logstash_input_redis_enabled
-      title: redis
-      description: ""
-      recommended: false
-      default: "0"
-      when: ""
-      type: bool
-      affix: ""
-      required: false
-      items: []
     - name: logstash_input_snmp_enabled
       title: snmp
       description: ""
@@ -670,26 +657,6 @@ config:
     recommended: false
     default: "1000"
     when: logstash_input_generator_enabled=1
-    type: text
-    affix: ""
-    required: false
-    items: []
-  - name: logstash_input_redis_host
-    title: Redis input host
-    description: ""
-    recommended: false
-    default: 127.0.0.1
-    when: logstash_input_redis_enabled=1
-    type: text
-    affix: ""
-    required: false
-    items: []
-  - name: logstash_input_redis_key
-    title: Redis key to monitor
-    description: ""
-    recommended: false
-    default: logstash
-    when: logstash_input_redis_enabled=1
     type: text
     affix: ""
     required: false
