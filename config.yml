@@ -386,7 +386,7 @@ components:
     support_files: []
   - source: public
     image_name: getelk/auth
-    version: 0.2.1
+    version: 0.3.2
     cmd: ""
     publish_events:
     - name: Container getelk/auth started
@@ -407,6 +407,7 @@ components:
         {{ end }}
         cookiename: replicated-auth
         expiration: 86400
+        supportemail: {{ ConfigOption "authentication_support_email" }}
     customer_files: []
     env_vars:
     - name: REPLICATED_AUTH_PASSWORD
@@ -489,6 +490,16 @@ config:
         default: ""
         when: authentication_type=authentication_type_password
         type: password
+        affix: ""
+        required: false
+        items: []
+      - name: authentication_support_email
+        title: Support Email
+        description: "Email is displayed on the sign in form."
+        recommended: false
+        default: ""
+        #when: authentication_type!=authentication_type_anonymous
+        type: text
         affix: ""
         required: false
         items: []
