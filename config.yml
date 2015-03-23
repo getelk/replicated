@@ -1,6 +1,9 @@
 name: "ELK"
 label: "4.0.1"
+page_title: ""
 release_notes: "Updated Kibana to 4.0.1 and Elasticsearch to 1.4.4"
+properties:
+  url: "http{{ if ConfigOptionEquals \"https_enabled\" \"1\" }}s{{ end }}://{{ ConfigOption \"hostname\" }}"
 components:
 - name: Elasticsearch
   containers:
