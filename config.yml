@@ -1,9 +1,13 @@
 name: "ELK"
-label: "4.0.1"
+label: "Alpha"
 page_title: ""
-release_notes: "Updated Kibana to 4.0.1 and Elasticsearch to 1.4.4"
+release_notes: "Updated Kibana to 4.0.1 and Elasticsearch to 1.5.0"
 properties:
   url: "http{{ if ConfigOptionEquals \"https_enabled\" \"1\" }}s{{ end }}://{{ ConfigOption \"hostname\" }}"
+backup:
+  enabled: '{{ConfigOptionEquals "backup_enabled" "1"}}'
+  init: "curl -XPUT 'http://{{ConfigOption \"hostname\"}}:9200/_snapshot/s3-backup' -d '{\"type\": \"s3\", \"settings\": {\"bucket\": \"{{ConfigOption \"backup_s3_bucket\"}}\",\"region\": \"{{ConfigOption \"backup_s3_region\"}}\", \"access_key\": \"{{ConfigOption \"backup_s3_accesskey\"}}\", \"secret_key\": \"{{ConfigOption \"backup_s3_secretkey\"}}\"}}"
+  run: "curl -XPUT http://{{ConfigOption \"hostname\"}}:9200/_snapshot/s3-backup/backup?wait_for_completion=true"
 components:
 - name: Elasticsearch
   containers:
