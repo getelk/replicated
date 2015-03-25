@@ -45,7 +45,7 @@ components:
   containers:
   - source: public
     image_name: getelk/logstash
-    version: 1.4.2-5
+    version: 1.4.2-6
     cmd: ""
     publish_events:
     - name: Container getelk/logstash started
@@ -60,6 +60,11 @@ components:
           collectd {
             typesdb => ["/opt/collectd-types.db"]
             port => {{ ConfigOption "logstash_input_collectd_port" }}
+          }
+          {{ end }}
+          {{ if ConfigOptionEquals "logstash_input_file_enabled" "1" }}
+          file {
+            path => ["{{ ConfigOption "logstash_input_file_path" }}"]
           }
           {{ end }}
           {{ if ConfigOptionEquals "logstash_input_ganglia_enabled" "1" }}
@@ -77,9 +82,27 @@ components:
             port => {{ ConfigOption "logstash_input_log4j_port" }}
           }
           {{ end }}
+          {{ if ConfigOptionEquals "logstash_input_lumberjack_enabled" "1" }}
+          lumberjack {
+            port => {{ ConfigOption "logstash_input_lumberjack_port" }}
+            ssl_certificate => "/opt/certs/logstash-forwarder.crt"
+            ssl_key => "/opt/certs/logstash-forwarder.key"
+          }
+          {{ end }}
+          {{ if ConfigOptionEquals "logstash_input_rabbitmq_enabled" "1" }}
+          rabbitmq {
+            host => "{{ ConfigOption "logstash_input_rabbitmq_host" }}"
+            port => {{ ConfigOption "logstash_input_rabbitmq_port" }}
+          }
+          {{ end }}
           {{ if ConfigOptionEquals "logstash_input_snmp_enabled" "1" }}
           snmptrap {
             port => {{ ConfigOption "logstash_input_snmp_port" }}
+          }
+          {{ end }}
+          {{ if ConfigOptionEquals "logstash_input_sqs_enabled" "1" }}
+          sqs {
+            queue => "{{ ConfigOption "logstash_input_sqs_queue" }}"
           }
           {{ end }}
           {{ if ConfigOptionEquals "logstash_input_syslog_enabled" "1" }}
@@ -99,14 +122,18 @@ components:
           {{ end }}
           {{ if ConfigOptionEquals "logstash_input_unix_enabled" "1" }}
           unix {
-            path => {{ ConfigOption "logstash_input_unix_path" }}
+            path => "{{ ConfigOption "logstash_input_unix_path" }}"
           }
           {{ end }}
-          {{ if ConfigOptionEquals "logstash_input_lumberjack_enabled" "1" }}
-          lumberjack {
-            port => {{ ConfigOption "logstash_input_lumberjack_port" }}
-            ssl_certificate => "/opt/certs/logstash-forwarder.crt"
-            ssl_key => "/opt/certs/logstash-forwarder.key"
+          {{ if ConfigOptionEquals "logstash_input_websocket_enabled" "1" }}
+          websocket {
+            url => "{{ ConfigOption "logstash_input_websocket_url" }}"
+          }
+          {{ end }}
+          {{ if ConfigOptionEquals "logstash_input_zeromq_enabled" "1" }}
+          zeromq {
+            address => "{{ ConfigOption "logstash_input_zeromq_address" }}"
+            topology => "{{ ConfigOption "logstash_input_zeromq_topology" }}"
           }
           {{ end }}
         }
@@ -125,7 +152,11 @@ components:
       filename: /opt/certs/logstash-forwarder.crt
     - name: logstash_input_lumberjack_key_file
       filename: /opt/certs/logstash-forwarder.key
-    env_vars: []
+    env_vars:
+    - name: AWS_ACCESS_KEY_ID
+      static_val: '{{ ConfigOption "logstash_input_sqs_aws_access_key" }}'
+    - name: AWS_SECRET_ACCESS_KEY
+      static_val: '{{ ConfigOption "logstash_input_sqs_aws_secret_key" }}'
     ports:
     - private_port: '{{ ConfigOption "logstash_input_collectd_port" }}'
       public_port: '{{ ConfigOption "logstash_input_collectd_port" }}'
@@ -626,6 +657,16 @@ config:
           affix: ""
           required: false
           items: []
+        - name: logstash_input_file_enabled
+          title: file
+          description: ""
+          recommended: false
+          default: "0"
+          when: ""
+          type: bool
+          affix: ""
+          required: false
+          items: []
         - name: logstash_input_ganglia_enabled
           title: ganglia
           description: ""
@@ -666,8 +707,28 @@ config:
           affix: ""
           required: false
           items: []
+        - name: logstash_input_rabbitmq_enabled
+          title: rabbitmq
+          description: ""
+          recommended: false
+          default: "0"
+          when: ""
+          type: bool
+          affix: ""
+          required: false
+          items: []
         - name: logstash_input_snmp_enabled
           title: snmp
+          description: ""
+          recommended: false
+          default: "0"
+          when: ""
+          type: bool
+          affix: ""
+          required: false
+          items: []
+        - name: logstash_input_sqs_enabled
+          title: sqs
           description: ""
           recommended: false
           default: "0"
@@ -716,6 +777,26 @@ config:
           affix: ""
           required: false
           items: []
+        - name: logstash_input_websocket_enabled
+          title: websocket
+          description: ""
+          recommended: false
+          default: "0"
+          when: ""
+          type: bool
+          affix: ""
+          required: false
+          items: []
+        - name: logstash_input_zeromq_enabled
+          title: zeromq
+          description: ""
+          recommended: false
+          default: "0"
+          when: ""
+          type: bool
+          affix: ""
+          required: false
+          items: []
       - name: logstash_input_collectd_port
         title: Collectd listen port
         description: ""
@@ -732,6 +813,16 @@ config:
         recommended: false
         default: "8649"
         when: logstash_input_ganglia_enabled=1
+        type: text
+        affix: ""
+        required: false
+        items: []
+      - name: logstash_input_file_path
+        title: File input path
+        description: ""
+        recommended: false
+        default: ""
+        when: logstash_input_file_enabled=1
         type: text
         affix: ""
         required: false
@@ -798,12 +889,62 @@ config:
         affix: right
         required: false
         items: []
+      - name: logstash_input_rabbitmq_host
+        title: RabbitMQ host
+        description: ""
+        recommended: false
+        default: ""
+        when: logstash_input_rabbitmq_enabled=1
+        type: text
+        affix: ""
+        required: false
+        items: []
+      - name: logstash_input_rabbitmq_port
+        title: RabbitMQ port
+        description: ""
+        recommended: false
+        default: "5672"
+        when: logstash_input_rabbitmq_enabled=1
+        type: text
+        affix: ""
+        required: false
+        items: []
       - name: logstash_input_snmp_port
         title: SNMP listen port
         description: ""
         recommended: false
         default: "1062"
         when: logstash_input_snmp_enabled=1
+        type: text
+        affix: ""
+        required: false
+        items: []
+      - name: logstash_input_sqs_queue
+        title: SQS queue
+        description: ""
+        recommended: false
+        default: ""
+        when: logstash_input_sqs_enabled=1
+        type: text
+        affix: ""
+        required: false
+        items: []
+      - name: logstash_input_sqs_aws_access_key
+        title: SQS AWS access key id and secret access key
+        description: ""
+        recommended: false
+        default: ""
+        when: logstash_input_sqs_enabled=1
+        type: text
+        affix: ""
+        required: false
+        items: []
+      - name: logstash_input_sqs_aws_secret_key
+        title: SQS AWS secret access key
+        description: ""
+        recommended: false
+        default: ""
+        when: logstash_input_sqs_enabled=1
         type: text
         affix: ""
         required: false
@@ -844,6 +985,36 @@ config:
         recommended: false
         default: ""
         when: logstash_input_unix_enabled=1
+        type: text
+        affix: ""
+        required: false
+        items: []
+      - name: logstash_input_websocket_url
+        title: Websocket URL
+        description: ""
+        recommended: false
+        default: "0.0.0.0"
+        when: logstash_input_websocket_enabled=1
+        type: text
+        affix: ""
+        required: false
+        items: []
+      - name: logstash_input_zeromq_address
+        title: ZeroMQ address
+        description: ""
+        recommended: false
+        default: "tcp://*:2120"
+        when: logstash_input_zeromq_enabled=1
+        type: text
+        affix: ""
+        required: false
+        items: []
+      - name: logstash_input_zeromq_topology
+        title: ZeroMQ topology
+        description: "one of [\"pushpull\", \"pubsub\", \"pair\"]"
+        recommended: false
+        default: ""
+        when: logstash_input_zeromq_enabled=1
         type: text
         affix: ""
         required: false
