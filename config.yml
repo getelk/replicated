@@ -39,7 +39,9 @@ components:
       public_port: "9200"
       port_type: tcp
       when: ""
-    volumes: []
+    volumes:
+    - host_path: /data
+      container_path: /data
     support_files: []
 - name: Logstash & Kibana
   containers:
