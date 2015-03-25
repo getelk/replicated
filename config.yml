@@ -643,6 +643,39 @@ config:
         affix: right
         required: true
         items: []
+    - name: backup
+      title: Backup
+      description: ""
+      items:
+      - name: backup_enabled
+        title: Enable Backups
+        description: |
+          When enabled, your Elasticsearch data will be backed up to your S3 bucket.
+        recommended: false
+        default: "0"
+        when: ""
+        type: bool
+        affix: ""
+        required: false
+        items: []
+      - name: backup_s3_bucket
+        title: S3 Bucket Name
+        default: ""
+        when: backup_enabled=1
+        type: text
+      - name: backup_s3_region
+        title: AWS Region
+        default: "us-east"
+        when: backup_enabled=1
+        type: text
+      - name: backup_s3_accesskey
+        title: AWS Access Key
+        when: backup_enabled=1
+        type: text
+      - name: backup_s3_secretkey
+        title: AWS Secret Key
+        when: backup_enabled=1
+        type: text
     - name: inputs
       title: Inputs
       description: Define inputs for logstash to create
