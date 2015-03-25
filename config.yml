@@ -45,7 +45,7 @@ components:
   containers:
   - source: public
     image_name: getelk/logstash
-    version: 1.4.2-6
+    version: 1.4.2-7
     cmd: ""
     publish_events:
     - name: Container getelk/logstash started
@@ -146,6 +146,15 @@ components:
             host => "{{ HostPrivateIpAddress "Elasticsearch" "getelk/elasticsearch" }}"
             port => "{{ ContainerExposedPort "Elasticsearch" "getelk/elasticsearch" "9300" }}"
           }
+
+          {{ if ConfigOptionEquals "logstash_output_rollbar_enabled" "1" }}
+          rollbar {
+            access_token => "{{ ConfigOption "logstash_output_rollbar_access_token" }}"
+            environment => "{{ ConfigOption "logstash_output_rollbar_environment" }}"
+            level => "{{ ConfigOption "logstash_output_rollbar_level" }}"
+            format => "{{ ConfigOption "logstash_output_rollbar_format" }}"
+          }
+          {{ end }}
         }
     customer_files:
     - name: logstash_input_lumberjack_cert_file
@@ -1015,6 +1024,71 @@ config:
         recommended: false
         default: ""
         when: logstash_input_zeromq_enabled=1
+        type: text
+        affix: ""
+        required: false
+        items: []
+    - name: outputs
+      title: Outputs
+      description: Define outputs for logstash to create
+      items:
+      - name: outputs_enabled
+        title: Choose which outputs to enable for Logstash.
+        description: |
+          You can enable as many or as few as is relevant to your requirements. Elasticsearch is enabled by default.
+        recommended: false
+        default: ""
+        when: ""
+        type: select_many
+        affix: ""
+        required: false
+        items:
+        - name: logstash_output_rollbar_enabled
+          title: rollbar
+          description: ""
+          recommended: false
+          default: "0"
+          when: ""
+          type: bool
+          affix: ""
+          required: false
+          items: []
+      - name: logstash_output_rollbar_access_token
+        title: Rollbar access token
+        description: ""
+        recommended: false
+        default: ""
+        when: logstash_output_rollbar_enabled=1
+        type: text
+        affix: ""
+        required: false
+        items: []
+      - name: logstash_output_rollbar_environment
+        title: Rollbar project environment
+        description: ""
+        recommended: false
+        default: "production"
+        when: logstash_output_rollbar_enabled=1
+        type: text
+        affix: ""
+        required: false
+        items: []
+      - name: logstash_output_rollbar_level
+        title: Rollbar log level
+        description: ""
+        recommended: false
+        default: "info"
+        when: logstash_output_rollbar_enabled=1
+        type: text
+        affix: ""
+        required: false
+        items: []
+      - name: logstash_output_rollbar_format
+        title: Rollbar format string
+        description: ""
+        recommended: false
+        default: "%{message}"
+        when: logstash_output_rollbar_enabled=1
         type: text
         affix: ""
         required: false
