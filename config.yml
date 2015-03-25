@@ -35,7 +35,7 @@ components:
           plugins: /data/plugins
           work: /data/work
         http.cors.enabled: true
-        http.cors.allow-origin: http://{{ ConfigOption "hostname" }}
+        http.cors.allow-origin: /https?:\/\/{{ ConfigOption "hostname" }}(:[0-9]+)?/
     customer_files: []
     env_vars: []
     ports:
@@ -46,6 +46,25 @@ components:
     volumes:
     - host_path: /data
       container_path: /data
+    support_files: []
+  - source: public
+    image_name: getelk/elasticsearch-head
+    version: 0.1.1
+    cmd: ""
+    publish_events:
+    - name: Container elasticsearch-head started
+      trigger: container-start
+      data: ""
+      subscriptions: []
+    config_files: []
+    customer_files: []
+    env_vars: []
+    ports:
+    - private_port: "9100"
+      public_port: "9100"
+      port_type: tcp
+      when: ""
+    volumes: []
     support_files: []
 - name: Logstash & Kibana
   containers:
