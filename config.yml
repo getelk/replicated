@@ -9,7 +9,7 @@ components:
   containers:
   - source: public
     image_name: getelk/elasticsearch
-    version: 1.4.4-9
+    version: 1.5.0-0
     cmd: ""
     publish_events:
     - name: Container getelk/elasticsearch started
