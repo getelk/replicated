@@ -1,5 +1,5 @@
-# Getelk Alpha
 ---
+# Getelk Alpha
 replicated_api_version: 1
 name: "ELK"
 version: "Alpha"
@@ -11,8 +11,7 @@ properties:
 backup:
   enabled: '{{ConfigOptionEquals "backup_enabled" "1"}}'
   init: ["curl", "-XPUT", "http://{{ConfigOption \"hostname\"}}:9200/_snapshot/s3-backup", "-d", "'{\"type\": \"s3\", \"settings\": {\"bucket\": \"{{ConfigOption \"backup_s3_bucket\"}}\",\"region\": \"{{ConfigOption \"backup_s3_region\"}}\", \"access_key\": \"{{ConfigOption \"backup_s3_accesskey\"}}\", \"secret_key\": \"{{ConfigOption \"backup_s3_secretkey\"}}\"}}'"]
-  # run: ["curl", "-XPUT", "http://{{ConfigOption \"hostname\"}}:9200/_snapshot/s3-backup/getelk-{{Now}}?wait_for_completion=true"]
-  run: ["curl", "-XPUT", "http://{{ConfigOption \"hostname\"}}:9200/_snapshot/s3-backup/getelk-backup?wait_for_completion=true"]
+  run: [curl", "-XPUT", "http://{{ConfigOption \"hostname\"}}:9200/_snapshot/s3-backup/getelk-backup?wait_for_completion=true"]
 cmds:
 - name: hashkey
   cmd: random
@@ -550,7 +549,7 @@ config:
 - name: authentication
   title: Authentication
   description: |
-    Have an existing user database to connect to?  Configure it below to replace the default anonymous connections.
+    When enabled, Kibana will prevent anonymous connections and prompt for a users to log in.
   items:
   - name: authentication_type
     title: ""
@@ -580,7 +579,7 @@ config:
       required: false
   - name: authentication_type_password_password
     title: Password
-    description: ""
+    description: "A shared password which will by used to grant access to Kibana"
     recommended: false
     default: ""
     when: authentication_type=authentication_type_password
@@ -589,8 +588,8 @@ config:
     required: false
     items: []
   - name: authentication_support_email
-    title: Support Email
-    description: "Email is displayed on the sign in form."
+    title: Support Email Address
+    description: "An email address to display on the login form"
     recommended: false
     default: ""
     #when: authentication_type!=authentication_type_anonymous
