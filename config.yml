@@ -566,7 +566,7 @@ config:
       description: ""
       recommended: false
       when: ""
-      type: option
+      type: text
       affix: ""
       required: false
     - name: authentication_type_password
@@ -574,7 +574,7 @@ config:
       description: ""
       recommended: true
       when: ""
-      type: option
+      type: text
       affix: ""
       required: false
   - name: authentication_type_password_password
