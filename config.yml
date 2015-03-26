@@ -6,14 +6,15 @@ properties:
   url: "http{{ if ConfigOptionEquals \"https_enabled\" \"1\" }}s{{ end }}://{{ ConfigOption \"hostname\" }}"
 backup:
   enabled: '{{ConfigOptionEquals "backup_enabled" "1"}}'
-  init: "curl -XPUT 'http://{{ConfigOption \"hostname\"}}:9200/_snapshot/s3-backup' -d '{\"type\": \"s3\", \"settings\": {\"bucket\": \"{{ConfigOption \"backup_s3_bucket\"}}\",\"region\": \"{{ConfigOption \"backup_s3_region\"}}\", \"access_key\": \"{{ConfigOption \"backup_s3_accesskey\"}}\", \"secret_key\": \"{{ConfigOption \"backup_s3_secretkey\"}}\"}}"
-  run: "curl -XPUT http://{{ConfigOption \"hostname\"}}:9200/_snapshot/s3-backup/backup?wait_for_completion=true"
+  init: ["curl", "-XPUT", "http://{{ConfigOption \"hostname\"}}:9200/_snapshot/s3-backup", "-d", "'{\"type\": \"s3\", \"settings\": {\"bucket\": \"{{ConfigOption \"backup_s3_bucket\"}}\",\"region\": \"{{ConfigOption \"backup_s3_region\"}}\", \"access_key\": \"{{ConfigOption \"backup_s3_accesskey\"}}\", \"secret_key\": \"{{ConfigOption \"backup_s3_secretkey\"}}\"}}'"]
+#  run: ["curl", "-XPUT", "http://{{ConfigOption \"hostname\"}}:9200/_snapshot/s3-backup/getelk-{{Now}}?wait_for_completion=true"]
+  run: ["curl", "-XPUT", "http://{{ConfigOption \"hostname\"}}:9200/_snapshot/s3-backup/getelk-backup?wait_for_completion=true"]
 components:
 - name: Elasticsearch
   containers:
   - source: public
     image_name: getelk/elasticsearch
-    version: 1.5.0-0
+    version: 1.5.0-3
     cmd: ""
     publish_events:
     - name: Container getelk/elasticsearch started
@@ -32,7 +33,7 @@ components:
         path:
           data: /data/data
           logs: /data/log
-          plugins: /data/plugins
+          plugins: /elasticsearch/plugins
           work: /data/work
         http.cors.enabled: true
         http.cors.allow-origin: /https?:\/\/{{ ConfigOption "hostname" }}(:[0-9]+)?/
@@ -1088,7 +1089,9 @@ config:
         items: []
     - name: outputs
       title: Outputs
-      description: Define outputs for logstash to create
+      description: |
+        Define additional outputs for Logstash to create.  By default, your data will be sent to your new, local Elasticsearch cluster.  If you want any
+        additional output, select it here.
       items:
       - name: outputs_enabled
         title: Choose which outputs to enable for Logstash.
