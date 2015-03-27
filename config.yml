@@ -11,7 +11,7 @@ properties:
 backup:
   enabled: '{{ConfigOptionEquals "backup_enabled" "1"}}'
   init: ["curl", "-XPUT", "http://{{ConfigOption \"hostname\"}}:9200/_snapshot/s3-backup", "-d", "'{\"type\": \"s3\", \"settings\": {\"bucket\": \"{{ConfigOption \"backup_s3_bucket\"}}\",\"region\": \"{{ConfigOption \"backup_s3_region\"}}\", \"access_key\": \"{{ConfigOption \"backup_s3_accesskey\"}}\", \"secret_key\": \"{{ConfigOption \"backup_s3_secretkey\"}}\"}}'"]
-  run: [curl", "-XPUT", "http://{{ConfigOption \"hostname\"}}:9200/_snapshot/s3-backup/getelk-backup?wait_for_completion=true"]
+  run: ["curl", "-XPUT", "http://{{ConfigOption \"hostname\"}}:9200/_snapshot/s3-backup/getelk-{{Now | ToLower}}?wait_for_completion=true"]
 cmds:
 - name: hashkey
   cmd: random
@@ -1157,3 +1157,4 @@ config:
     affix: ""
     required: false
     items: []
+
