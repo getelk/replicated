@@ -592,8 +592,7 @@ config:
     description: "An email address to display on the login form"
     recommended: false
     default: ""
-    #when: authentication_type!=authentication_type_anonymous
-    when: authentication_type=authentication_type_password
+    when: authentication_type!=authentication_type_anonymous
     type: text
     affix: ""
     required: false
