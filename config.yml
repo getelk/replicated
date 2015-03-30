@@ -5,7 +5,7 @@ name: "ELK"
 version: "Alpha"
 release_notes: "Updated Kibana to 4.0.1 and Elasticsearch to 1.5.0"
 properties:
-  app_url:  "http{{ if ConfigOptionEquals \"https_enabled\" \"1\" }}s{{ end }}://{{ ConfigOption \"hostname\" }}"
+  app_url:  http{{ if ConfigOptionEquals "https_enabled" "1" }}s{{ end }}://{{ ConfigOption "hostname" }}
   logo_url: ""
   console_title: ""
 backup:
@@ -54,14 +54,11 @@ components:
         action: start
     config_files:
     - filename: /elasticsearch/config/elasticsearch.yml
-      contents: |
-        path:
-          data: /data/data
-          logs: /data/log
-          plugins: /elasticsearch/plugins
-          work: /data/work
-        http.cors.enabled: true
-        http.cors.allow-origin: /https?:\/\/{{ ConfigOption "hostname" }}(:[0-9]+)?/
+      source: github
+      owner: getelk
+      repo: elasticsearch
+      path: /files/elasticsearch.yml
+      ref: c3636b396b2df172926816be5660c9cabc8c5355
     customer_files: []
     env_vars: []
     ports:
@@ -101,108 +98,11 @@ components:
       subscriptions: []
     config_files:
     - filename: /opt/conf/logstash.conf
-      contents: |
-        input {
-          {{ if ConfigOptionEquals "logstash_input_collectd_enabled" "1" }}
-          collectd {
-            typesdb => ["/opt/collectd-types.db"]
-            port => {{ ConfigOption "logstash_input_collectd_port" }}
-          }
-          {{ end }}
-          {{ if ConfigOptionEquals "logstash_input_file_enabled" "1" }}
-          file {
-            path => ["{{ ConfigOption "logstash_input_file_path" }}"]
-          }
-          {{ end }}
-          {{ if ConfigOptionEquals "logstash_input_ganglia_enabled" "1" }}
-          ganglia {
-            port => {{ ConfigOption "logstash_input_ganglia_port" }}
-          }
-          {{ end }}
-          {{ if ConfigOptionEquals "logstash_input_generator_enabled" "1" }}
-          generator {
-            count => {{ ConfigOption "logstash_input_generator_count" }}
-          }
-          {{ end }}
-          {{ if ConfigOptionEquals "logstash_input_log4j_enabled" "1" }}
-          log4j {
-            port => {{ ConfigOption "logstash_input_log4j_port" }}
-          }
-          {{ end }}
-          {{ if ConfigOptionEquals "logstash_input_lumberjack_enabled" "1" }}
-          lumberjack {
-            port => {{ ConfigOption "logstash_input_lumberjack_port" }}
-            ssl_certificate => "/opt/certs/logstash-forwarder.crt"
-            ssl_key => "/opt/certs/logstash-forwarder.key"
-          }
-          {{ end }}
-          {{ if ConfigOptionEquals "logstash_input_rabbitmq_enabled" "1" }}
-          rabbitmq {
-            host => "{{ ConfigOption "logstash_input_rabbitmq_host" }}"
-            port => {{ ConfigOption "logstash_input_rabbitmq_port" }}
-          }
-          {{ end }}
-          {{ if ConfigOptionEquals "logstash_input_snmp_enabled" "1" }}
-          snmptrap {
-            port => {{ ConfigOption "logstash_input_snmp_port" }}
-          }
-          {{ end }}
-          {{ if ConfigOptionEquals "logstash_input_sqs_enabled" "1" }}
-          sqs {
-            queue => "{{ ConfigOption "logstash_input_sqs_queue" }}"
-          }
-          {{ end }}
-          {{ if ConfigOptionEquals "logstash_input_syslog_enabled" "1" }}
-          syslog {
-            port => {{ ConfigOption "logstash_input_syslog_port" }}
-          }
-          {{ end }}
-          {{ if ConfigOptionEquals "logstash_input_tcp_enabled" "1" }}
-          tcp {
-            port => {{ ConfigOption "logstash_input_tcp_port" }}
-          }
-          {{ end }}
-          {{ if ConfigOptionEquals "logstash_input_udp_enabled" "1" }}
-          udp {
-            port => {{ ConfigOption "logstash_input_udp_port" }}
-          }
-          {{ end }}
-          {{ if ConfigOptionEquals "logstash_input_unix_enabled" "1" }}
-          unix {
-            path => "{{ ConfigOption "logstash_input_unix_path" }}"
-          }
-          {{ end }}
-          {{ if ConfigOptionEquals "logstash_input_websocket_enabled" "1" }}
-          websocket {
-            url => "{{ ConfigOption "logstash_input_websocket_url" }}"
-          }
-          {{ end }}
-          {{ if ConfigOptionEquals "logstash_input_zeromq_enabled" "1" }}
-          zeromq {
-            address => "{{ ConfigOption "logstash_input_zeromq_address" }}"
-            topology => "{{ ConfigOption "logstash_input_zeromq_topology" }}"
-          }
-          {{ end }}
-        }
-
-        filter {
-        }
-
-        output {
-          elasticsearch {
-            host => "{{ HostPrivateIpAddress "Elasticsearch" "getelk/elasticsearch" }}"
-            port => "{{ ContainerExposedPort "Elasticsearch" "getelk/elasticsearch" "9300" }}"
-          }
-
-          {{ if ConfigOptionEquals "logstash_output_rollbar_enabled" "1" }}
-          rollbar {
-            access_token => "{{ ConfigOption "logstash_output_rollbar_access_token" }}"
-            environment => "{{ ConfigOption "logstash_output_rollbar_environment" }}"
-            level => "{{ ConfigOption "logstash_output_rollbar_level" }}"
-            format => "{{ ConfigOption "logstash_output_rollbar_format" }}"
-          }
-          {{ end }}
-        }
+      source: github
+      owner: getelk
+      repo: logstash
+      path: /files/logstash.conf
+      ref: bca5cf4e3522b9df0aa18e1c284562cd19b6f705
     customer_files:
     - name: logstash_input_lumberjack_cert_file
       filename: /opt/certs/logstash-forwarder.crt
@@ -262,71 +162,11 @@ components:
         action: start
     config_files:
     - filename: /opt/kibana/config/kibana.yml
-      contents: |
-        # Kibana is served by a back end server. This controls which port to use.
-        port: 5601
-
-        # The host to bind the server to.
-        host: "0.0.0.0"
-
-        # The Elasticsearch instance to use for all your queries.
-        elasticsearch_url: "http://{{ ConfigOption "hostname" }}:9200"
-
-        # preserve_elasticsearch_host true will send the hostname specified in `elasticsearch`. If you set it to false,
-        # then the host you use to connect to *this* Kibana instance will be sent.
-        elasticsearch_preserve_host: true
-
-        # Kibana uses an index in Elasticsearch to store saved searches, visualizations
-        # and dashboards. It will create a new index if it doesn't already exist.
-        kibana_index: ".kibana"
-
-        # If your Elasticsearch is protected with basic auth, this is the user credentials
-        # used by the Kibana server to perform maintence on the kibana_index at statup. Your Kibana
-        # users will still need to authenticate with Elasticsearch (which is proxied thorugh
-        # the Kibana server)
-        # kibana_elasticsearch_username: user
-        # kibana_elasticsearch_password: pass
-
-
-        # The default application to load.
-        default_app_id: "discover"
-
-        # Time in milliseconds to wait for responses from the back end or elasticsearch.
-        # This must be > 0
-        request_timeout: 300000
-
-        # Time in milliseconds for Elasticsearch to wait for responses from shards.
-        # Set to 0 to disable.
-        shard_timeout: 0
-
-        # Set to false to have a complete disregard for the validity of the SSL
-        # certificate.
-        verify_ssl: true
-
-        # If you need to provide a CA certificate for your Elasticsarech instance, put
-        # the path of the pem file here.
-        # ca: /path/to/your/CA.pem
-
-        # SSL for outgoing requests from the Kibana Server (PEM formatted)
-        # ssl_key_file: /path/to/your/server.key
-        # ssl_cert_file: /path/to/your/server.crt
-
-        # Set the path to where you would like the process id file to be created.
-        # pid_file: /var/run/kibana.pid
-
-
-        # Plugins that are included in the build, and no longer found in the plugins/ folder
-        bundled_plugin_ids:
-         - plugins/dashboard/index
-         - plugins/discover/index
-         - plugins/doc/index
-         - plugins/kibana/index
-         - plugins/markdown_vis/index
-         - plugins/metric_vis/index
-         - plugins/settings/index
-         - plugins/table_vis/index
-         - plugins/vis_types/index
-         - plugins/visualize/index
+      source: github
+      owner: getelk
+      repo: kibana
+      path: /files/kibana.yml
+      ref: cbd9a1a8e8cb3bf224636ef2873a16aafa5bb9c7
     customer_files: []
     env_vars: []
     ports: []
@@ -345,135 +185,17 @@ components:
       subscriptions: []
     config_files:
     - filename: /etc/nginx/conf.d/default.conf
-      contents: |
-        {{ if ConfigOptionEquals "http_enabled" "1" }}
-          server {
-              listen      80 default_server;
-              server_name {{ ConfigOption "hostname" }};
-
-              {{ if ConfigOptionNotEquals "authentication_type" "authentication_type_anonymous" }}
-              error_page 401 = @error401;
-              location @error401 {
-                  return 302 http://$server_name/replicated-auth/sign-in;
-              }
-
-              location = /replicated-auth/sign-in {
-                  rewrite           .* /sign-in break;
-                  proxy_pass        http://{{ HostPrivateIpAddress "SSL/Authentication" "getelk/auth" }}:{{ ContainerExposedPort "SSL/Authentication" "getelk/auth" "8080" }};
-                  proxy_set_header  X-Real-IP $remote_addr;
-                  proxy_set_header  Host $host;
-                  proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
-              }
-
-              location = /replicated-auth/authcheck {
-                  internal;
-
-                  rewrite           .* / break;
-                  proxy_pass        http://{{ HostPrivateIpAddress "SSL/Authentication" "getelk/auth" }}:{{ ContainerExposedPort "SSL/Authentication" "getelk/auth" "8080" }};
-                  proxy_set_header  X-Real-IP $remote_addr;
-                  proxy_set_header  Host $host;
-                  proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
-              }
-              {{ end }}
-
-              location / {
-                  {{ if ConfigOptionEquals "authentication_type" "authentication_type_password" }}
-                  auth_request /replicated-auth/authcheck;
-                  {{ end }}
-                  proxy_pass       http://{{ HostPrivateIpAddress "Logstash & Kibana" "getelk/kibana" }}:{{ ContainerExposedPort "Logstash & Kibana" "getelk/kibana" "5601" }};
-                  proxy_set_header X-Real-IP $remote_addr;
-                  proxy_set_header Host $host;
-                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-              }
-          }
-        {{ end }}
-
-        {{ if ConfigOptionEquals "https_enabled" "1" }}
-          server {
-              listen              443 ssl;
-              server_name         {{ ConfigOption "hostname" }};
-              keepalive_timeout   70;
-
-              ssl_certificate     /opt/certs/server.crt;
-              ssl_certificate_key /opt/certs/server.key;
-              ssl_protocols       TLSv1 TLSv1.1 TLSv1.2;
-              ssl_ciphers         HIGH:!aNULL:!MD5;
-              ssl_session_cache   shared:SSL:10m;
-              ssl_session_timeout 10m;
-
-              {{ if ConfigOptionNotEquals "authentication_type" "authentication_type_anonymous" }}
-              error_page 401 = @error401;
-              location @error401 {
-                  return 302 https://$server_name/replicated-auth/sign-in;
-              }
-
-              location = /replicated-auth/sign-in {
-                  rewrite           .* /sign-in break;
-                  proxy_pass        http://{{ HostPrivateIpAddress "SSL/Authentication" "getelk/auth" }}:{{ ContainerExposedPort "SSL/Authentication" "getelk/auth" "8080" }};
-                  proxy_set_header  X-Real-IP $remote_addr;
-                  proxy_set_header  Host $host;
-                  proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
-              }
-
-              location = /replicated-auth/authcheck {
-                  internal;
-
-                  rewrite           .* / break;
-                  proxy_pass        http://{{ HostPrivateIpAddress "SSL/Authentication" "getelk/auth" }}:{{ ContainerExposedPort "SSL/Authentication" "getelk/auth" "8080" }};
-                  proxy_set_header  X-Real-IP $remote_addr;
-                  proxy_set_header  Host $host;
-                  proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
-              }
-              {{ end }}
-
-              location / {
-                  {{ if ConfigOptionEquals "authentication_type" "authentication_type_password" }}
-                  auth_request /replicated-auth/authcheck;
-                  {{ end }}
-                  proxy_pass       http://{{ HostPrivateIpAddress "Logstash & Kibana" "getelk/kibana" }}:{{ ContainerExposedPort "Logstash & Kibana" "getelk/kibana" "5601" }};
-                  proxy_set_header X-Real-IP $remote_addr;
-                  proxy_set_header Host $host;
-                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-              }
-          }
-        {{ end }}
+      source: github
+      owner: getelk
+      repo: replicated
+      path: /files/nginx_default.conf
+      ref:
     - filename: /etc/nginx/conf.d/elasticsearch_head.conf
-      contents: |
-        server {
-            listen      9100;
-            server_name {{ ConfigOption "hostname" }};
-
-            {{ if ConfigOptionNotEquals "authentication_type" "authentication_type_anonymous" }}
-            error_page 401 = @error401;
-            location @error401 {
-              {{ if ConfigOptionEquals "https_enabled" "1" }}
-                return 302 https://$server_name/replicated-auth/sign-in;
-              {{ else }}
-                return 302 http://$server_name/replicated-auth/sign-in;
-              {{ end }}
-            }
-
-            location = /replicated-auth/authcheck {
-                internal;
-
-                rewrite           .* / break;
-                proxy_pass        http://{{ HostPrivateIpAddress "SSL/Authentication" "getelk/auth" }}:{{ ContainerExposedPort "SSL/Authentication" "getelk/auth" "8080" }};
-                proxy_set_header  X-Real-IP $remote_addr;
-                proxy_set_header  Host $host;
-                proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
-            }
-            {{ end }}
-
-            location / {
-                {{ if ConfigOptionEquals "authentication_type" "authentication_type_password" }}
-                auth_request /replicated-auth/authcheck;
-                {{ end }}
-                proxy_pass       http://{{ HostPrivateIpAddress "Elasticsearch" "getelk/elasticsearch-head" }}:{{ ContainerExposedPort "Elasticsearch" "getelk/elasticsearch-head" "80" }};
-                proxy_set_header X-Real-IP $remote_addr;
-                proxy_set_header Host $host;
-                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            }
-        }
+      source: github
+      owner: getelk
+      repo: elasticsearch-head
+      path: /files/nginx.conf
+      ref: 27ff6587b42b31bf6b7d703f3bb0be6a2eb691ad
     customer_files:
     - name: ssl_cert_file
       filename: /opt/certs/server.crt
@@ -509,16 +231,11 @@ components:
         action: start
     config_files:
     - filename: /root/config.yaml
-      contents: |
-        hostaddress: :8080
-        {{ if ConfigOptionEquals "authentication_type" "authentication_type_password" }}
-        authtype: password
-        {{ else }}
-        authtype: anonymous
-        {{ end }}
-        cookiename: replicated-auth
-        expiration: 86400
-        supportemail: {{ ConfigOption "authentication_support_email" }}
+      source: github
+      owner: getelk
+      repo: replicated
+      path: /files/auth_config.yaml
+      ref:
     customer_files: []
     env_vars:
     - name: REPLICATED_AUTH_PASSWORD
