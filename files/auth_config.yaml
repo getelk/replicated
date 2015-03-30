@@ -1,0 +1,9 @@
+hostaddress: :8080
+{{ if ConfigOptionEquals "authentication_type" "authentication_type_password" }}
+authtype: password
+{{ else }}
+authtype: anonymous
+{{ end }}
+cookiename: replicated-auth
+expiration: 86400
+supportemail: {{ ConfigOption "authentication_support_email" }}
