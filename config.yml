@@ -57,7 +57,7 @@ components:
       source: github
       owner: getelk
       repo: elasticsearch
-      path: /files/elasticsearch.yml
+      path: files/elasticsearch.yml
       ref: 97c7227ea98c3447540e3462b96da95152d3347d
     customer_files: []
     env_vars: []
@@ -101,7 +101,7 @@ components:
       source: github
       owner: getelk
       repo: logstash
-      path: /files/logstash.conf
+      path: files/logstash.conf
       ref: 1679872e02b828f2cac666b36af1738f1a0b2221
     customer_files:
     - name: logstash_input_lumberjack_cert_file
@@ -165,7 +165,7 @@ components:
       source: github
       owner: getelk
       repo: kibana
-      path: /files/kibana.yml
+      path: files/kibana.yml
       ref: af0c9cc784c78d6b4b1a53e4656e612014ae1aa9
     customer_files: []
     env_vars: []
@@ -188,13 +188,13 @@ components:
       source: github
       owner: getelk
       repo: replicated
-      path: /files/nginx_default.conf
+      path: files/nginx_default.conf
       ref: c1c8d7d4f0748301e28fc5e03c7b65e2dc930313
     - filename: /etc/nginx/conf.d/elasticsearch_head.conf
       source: github
       owner: getelk
       repo: elasticsearch-head
-      path: /files/nginx.conf
+      path: files/nginx.conf
       ref: 46809d3c90c9d6f847634a715e999af99d7fc9e9
     customer_files:
     - name: ssl_cert_file
@@ -234,7 +234,7 @@ components:
       source: github
       owner: getelk
       repo: replicated
-      path: /files/auth_config.yaml
+      path: files/auth_config.yaml
       ref: c1c8d7d4f0748301e28fc5e03c7b65e2dc930313
     customer_files: []
     env_vars:
