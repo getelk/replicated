@@ -189,7 +189,7 @@ components:
       owner: getelk
       repo: replicated
       path: files/nginx_default.conf
-      ref: c1c8d7d4f0748301e28fc5e03c7b65e2dc930313
+      ref: 3bac048801f32001095d9d372688803e24f41cce
     - filename: /etc/nginx/conf.d/elasticsearch_head.conf
       source: github
       owner: getelk
@@ -235,7 +235,7 @@ components:
       owner: getelk
       repo: replicated
       path: files/auth_config.yaml
-      ref: c1c8d7d4f0748301e28fc5e03c7b65e2dc930313
+      ref: 3bac048801f32001095d9d372688803e24f41cce
     customer_files: []
     env_vars:
     - name: REPLICATED_AUTH_PASSWORD
