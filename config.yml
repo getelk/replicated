@@ -5,13 +5,13 @@ name: "ELK"
 version: "Alpha"
 release_notes: "Updated Kibana to 4.0.1 and Elasticsearch to 1.5.0"
 properties:
-  app_url:  http{{ if ConfigOptionEquals "https_enabled" "1" }}s{{ end }}://{{ ConfigOption "hostname" }}
+  app_url:  http{{repl if ConfigOptionEquals "https_enabled" "1" }}s{{repl end }}://{{repl ConfigOption "hostname" }}
   logo_url: ""
   console_title: ""
 backup:
-  enabled: '{{ConfigOptionEquals "backup_enabled" "1"}}'
-  init: ["curl", "-XPUT", "http://{{ConfigOption \"hostname\"}}:9200/_snapshot/s3-backup", "-d", "'{\"type\": \"s3\", \"settings\": {\"bucket\": \"{{ConfigOption \"backup_s3_bucket\"}}\",\"region\": \"{{ConfigOption \"backup_s3_region\"}}\", \"access_key\": \"{{ConfigOption \"backup_s3_accesskey\"}}\", \"secret_key\": \"{{ConfigOption \"backup_s3_secretkey\"}}\"}}'"]
-  run: ["curl", "-XPUT", "http://{{ConfigOption \"hostname\"}}:9200/_snapshot/s3-backup/getelk-{{Now | ToLower}}?wait_for_completion=true"]
+  enabled: '{{repl ConfigOptionEquals "backup_enabled" "1" }}'
+  init: ["curl", "-XPUT", "http://{{repl ConfigOption \"hostname\" }}:9200/_snapshot/s3-backup", "-d", "'{\"type\": \"s3\", \"settings\": {\"bucket\": \"{{repl ConfigOption \"backup_s3_bucket\" }}\",\"region\": \"{{repl ConfigOption \"backup_s3_region\" }}\", \"access_key\": \"{{repl ConfigOption \"backup_s3_accesskey\" }}\", \"secret_key\": \"{{repl ConfigOption \"backup_s3_secretkey\" }}\" }}'"]
+  run: ["curl", "-XPUT", "http://{{repl ConfigOption \"hostname\" }}:9200/_snapshot/s3-backup/getelk-{{repl Now | ToLower }}?wait_for_completion=true"]
 cmds:
 - name: hashkey
   cmd: random
@@ -57,8 +57,8 @@ components:
       source: github
       owner: getelk
       repo: elasticsearch
-      path: /files/elasticsearch.yml
-      ref: c3636b396b2df172926816be5660c9cabc8c5355
+      path: files/elasticsearch.yml
+      ref: 97c7227ea98c3447540e3462b96da95152d3347d
     customer_files: []
     env_vars: []
     ports:
@@ -101,8 +101,8 @@ components:
       source: github
       owner: getelk
       repo: logstash
-      path: /files/logstash.conf
-      ref: bca5cf4e3522b9df0aa18e1c284562cd19b6f705
+      path: files/logstash.conf
+      ref: 1679872e02b828f2cac666b36af1738f1a0b2221
     customer_files:
     - name: logstash_input_lumberjack_cert_file
       filename: /opt/certs/logstash-forwarder.crt
@@ -110,42 +110,42 @@ components:
       filename: /opt/certs/logstash-forwarder.key
     env_vars:
     - name: AWS_ACCESS_KEY_ID
-      static_val: '{{ ConfigOption "logstash_input_sqs_aws_access_key" }}'
+      static_val: '{{repl ConfigOption "logstash_input_sqs_aws_access_key" }}'
     - name: AWS_SECRET_ACCESS_KEY
-      static_val: '{{ ConfigOption "logstash_input_sqs_aws_secret_key" }}'
+      static_val: '{{repl ConfigOption "logstash_input_sqs_aws_secret_key" }}'
     ports:
-    - private_port: '{{ ConfigOption "logstash_input_collectd_port" }}'
-      public_port: '{{ ConfigOption "logstash_input_collectd_port" }}'
+    - private_port: '{{repl ConfigOption "logstash_input_collectd_port" }}'
+      public_port: '{{repl ConfigOption "logstash_input_collectd_port" }}'
       port_type: tcp
-      when: '{{ ConfigOptionEquals "logstash_input_collectd_enabled" "1" }}'
-    - private_port: '{{ ConfigOption "logstash_input_tcp_port" }}'
-      public_port: '{{ ConfigOption "logstash_input_tcp_port" }}'
+      when: '{{repl ConfigOptionEquals "logstash_input_collectd_enabled" "1" }}'
+    - private_port: '{{repl ConfigOption "logstash_input_tcp_port" }}'
+      public_port: '{{repl ConfigOption "logstash_input_tcp_port" }}'
       port_type: tcp
-      when: '{{ ConfigOptionEquals "logstash_input_tcp_enabled" "1" }}'
-    - private_port: '{{ ConfigOption "logstash_input_udp_port" }}'
-      public_port: '{{ ConfigOption "logstash_input_udp_port" }}'
+      when: '{{repl ConfigOptionEquals "logstash_input_tcp_enabled" "1" }}'
+    - private_port: '{{repl ConfigOption "logstash_input_udp_port" }}'
+      public_port: '{{repl ConfigOption "logstash_input_udp_port" }}'
       port_type: tcp
-      when: '{{ ConfigOptionEquals "logstash_input_udp_enabled" "1" }}'
-    - private_port: '{{ ConfigOption "logstash_input_snmp_port" }}'
-      public_port: '{{ ConfigOption "logstash_input_snmp_port" }}'
+      when: '{{repl ConfigOptionEquals "logstash_input_udp_enabled" "1" }}'
+    - private_port: '{{repl ConfigOption "logstash_input_snmp_port" }}'
+      public_port: '{{repl ConfigOption "logstash_input_snmp_port" }}'
       port_type: tcp
-      when: '{{ ConfigOptionEquals "logstash_input_snmp_enabled" "1" }}'
-    - private_port: '{{ ConfigOption "logstash_input_syslog_port" }}'
-      public_port: '{{ ConfigOption "logstash_input_syslog_port" }}'
+      when: '{{repl ConfigOptionEquals "logstash_input_snmp_enabled" "1" }}'
+    - private_port: '{{repl ConfigOption "logstash_input_syslog_port" }}'
+      public_port: '{{repl ConfigOption "logstash_input_syslog_port" }}'
       port_type: tcp
-      when: '{{ ConfigOptionEquals "logstash_input_syslog_enabled" "1" }}'
+      when: '{{repl ConfigOptionEquals "logstash_input_syslog_enabled" "1" }}'
     - private_port: "25826"
       public_port: "25826"
       port_type: tcp
-      when: '{{ ConfigOptionEquals "logstash_input_collectd_enabled" "1" }}'
-    - private_port: '{{ ConfigOption "logstash_input_ganglia_port" }}'
-      public_port: '{{ ConfigOption "logstash_input_ganglia_port" }}'
+      when: '{{repl ConfigOptionEquals "logstash_input_collectd_enabled" "1" }}'
+    - private_port: '{{repl ConfigOption "logstash_input_ganglia_port" }}'
+      public_port: '{{repl ConfigOption "logstash_input_ganglia_port" }}'
       port_type: tcp
-      when: '{{ ConfigOptionEquals "logstash_input_ganglia_enabled" "1" }}'
-    - private_port: '{{ ConfigOption "logstash_input_lumberjack_port" }}'
-      public_port: '{{ ConfigOption "logstash_input_lumberjack_port" }}'
+      when: '{{repl ConfigOptionEquals "logstash_input_ganglia_enabled" "1" }}'
+    - private_port: '{{repl ConfigOption "logstash_input_lumberjack_port" }}'
+      public_port: '{{repl ConfigOption "logstash_input_lumberjack_port" }}'
       port_type: tcp
-      when: '{{ ConfigOptionEquals "logstash_input_lumberjack_enabled" "1" }}'
+      when: '{{repl ConfigOptionEquals "logstash_input_lumberjack_enabled" "1" }}'
     volumes: []
     support_files: []
   - source: public
@@ -165,8 +165,8 @@ components:
       source: github
       owner: getelk
       repo: kibana
-      path: /files/kibana.yml
-      ref: cbd9a1a8e8cb3bf224636ef2873a16aafa5bb9c7
+      path: files/kibana.yml
+      ref: af0c9cc784c78d6b4b1a53e4656e612014ae1aa9
     customer_files: []
     env_vars: []
     ports: []
@@ -188,14 +188,14 @@ components:
       source: github
       owner: getelk
       repo: replicated
-      path: /files/nginx_default.conf
-      ref: 0cfabc50710084f755b550f09b5f9de665d6e290
+      path: files/nginx_default.conf
+      ref: c1c8d7d4f0748301e28fc5e03c7b65e2dc930313
     - filename: /etc/nginx/conf.d/elasticsearch_head.conf
       source: github
       owner: getelk
       repo: elasticsearch-head
-      path: /files/nginx.conf
-      ref: 27ff6587b42b31bf6b7d703f3bb0be6a2eb691ad
+      path: files/nginx.conf
+      ref: 46809d3c90c9d6f847634a715e999af99d7fc9e9
     customer_files:
     - name: ssl_cert_file
       filename: /opt/certs/server.crt
@@ -206,11 +206,11 @@ components:
     - private_port: "80"
       public_port: "80"
       port_type: tcp
-      when: '{{ ConfigOptionEquals "http_enabled" "1" }}'
+      when: '{{repl ConfigOptionEquals "http_enabled" "1" }}'
     - private_port: "443"
       public_port: "443"
       port_type: tcp
-      when: '{{ ConfigOptionEquals "https_enabled" "1" }}'
+      when: '{{repl ConfigOptionEquals "https_enabled" "1" }}'
     - private_port: "9100"
       public_port: "9100"
       port_type: tcp
@@ -234,16 +234,16 @@ components:
       source: github
       owner: getelk
       repo: replicated
-      path: /files/auth_config.yaml
-      ref: 0cfabc50710084f755b550f09b5f9de665d6e290
+      path: files/auth_config.yaml
+      ref: c1c8d7d4f0748301e28fc5e03c7b65e2dc930313
     customer_files: []
     env_vars:
     - name: REPLICATED_AUTH_PASSWORD
-      static_val: '{{ ConfigOption "authentication_type_password_password" }}'
+      static_val: '{{repl ConfigOption "authentication_type_password_password" }}'
     - name: REPLICATED_AUTH_HASHKEY
-      static_val: '{{ ConfigOption "authentication_type_password_hashkey" }}'
+      static_val: '{{repl ConfigOption "authentication_type_password_hashkey" }}'
     - name: REPLICATED_AUTH_BLOCKKEY
-      static_val: '{{ ConfigOption "authentication_type_password_blockkey" }}'
+      static_val: '{{repl ConfigOption "authentication_type_password_blockkey" }}'
     ports: []
     volumes: []
     support_files: []
