@@ -587,7 +587,7 @@ config:
     when: authentication_type=authentication_type_password
     type: password
     affix: ""
-    required: false
+    required: true
     items: []
   - name: authentication_support_email
     title: Support Email Address
@@ -597,7 +597,7 @@ config:
     when: authentication_type!=authentication_type_anonymous
     type: text
     affix: ""
-    required: false
+    required: true
     items: []
   - name: authentication_type_password_hashkey
     title: Hash Key
@@ -610,7 +610,7 @@ config:
       name: hashkey
       value_at: 0
     affix: ""
-    required: false
+    required: true
     items: []
   - name: authentication_type_password_blockkey
     title: Block Key
@@ -623,7 +623,7 @@ config:
       name: blockkey
       value_at: 0
     affix: ""
-    required: false
+    required: true
     items: []
 - name: privacy
   title: Privacy
@@ -691,19 +691,23 @@ config:
     default: ""
     when: backup_enabled=1
     type: text
+    required: true
   - name: backup_s3_region
     title: AWS Region
     default: "us-east"
     when: backup_enabled=1
     type: text
+    required: true
   - name: backup_s3_accesskey
     title: AWS Access Key
     when: backup_enabled=1
     type: text
+    required: true
   - name: backup_s3_secretkey
     title: AWS Secret Key
     when: backup_enabled=1
     type: text
+    required: true
 - name: inputs
   title: Inputs
   description: Define inputs for logstash to create
@@ -877,7 +881,7 @@ config:
     when: logstash_input_collectd_enabled=1
     type: text
     affix: ""
-    required: false
+    required: true
     items: []
   - name: logstash_input_ganglia_port
     title: Ganglia listen port
@@ -887,7 +891,7 @@ config:
     when: logstash_input_ganglia_enabled=1
     type: text
     affix: ""
-    required: false
+    required: true
     items: []
   - name: logstash_input_file_path
     title: File input path
@@ -897,7 +901,7 @@ config:
     when: logstash_input_file_enabled=1
     type: text
     affix: ""
-    required: false
+    required: true
     items: []
   - name: logstash_input_generator_count
     title: Generator count
@@ -907,7 +911,7 @@ config:
     when: logstash_input_generator_enabled=1
     type: text
     affix: ""
-    required: false
+    required: true
     items: []
   - name: logstash_input_log4j_port
     title: Log4j listen port
@@ -917,7 +921,7 @@ config:
     when: logstash_input_log4j_enabled=1
     type: text
     affix: ""
-    required: false
+    required: true
     items: []
   - name: logstash_input_lumberjack_port
     title: Lumberjack port
@@ -927,7 +931,7 @@ config:
     when: logstash_input_lumberjack_enabled=1
     type: text
     affix: ""
-    required: false
+    required: true
     items: []
   - name: logstash_input_lumberjack_key_file
     title: Lumberjack private key file
@@ -943,7 +947,7 @@ config:
     when: logstash_input_lumberjack_enabled=1
     type: file
     affix: left
-    required: false
+    required: true
     items: []
   - name: logstash_input_lumberjack_cert_file
     title: Lumberjack cert file
@@ -959,7 +963,7 @@ config:
     when: logstash_input_lumberjack_enabled=1
     type: file
     affix: right
-    required: false
+    required: true
     items: []
   - name: logstash_input_rabbitmq_host
     title: RabbitMQ host
@@ -969,7 +973,7 @@ config:
     when: logstash_input_rabbitmq_enabled=1
     type: text
     affix: ""
-    required: false
+    required: true
     items: []
   - name: logstash_input_rabbitmq_port
     title: RabbitMQ port
@@ -979,7 +983,7 @@ config:
     when: logstash_input_rabbitmq_enabled=1
     type: text
     affix: ""
-    required: false
+    required: true
     items: []
   - name: logstash_input_snmp_port
     title: SNMP listen port
@@ -989,7 +993,7 @@ config:
     when: logstash_input_snmp_enabled=1
     type: text
     affix: ""
-    required: false
+    required: true
     items: []
   - name: logstash_input_sqs_queue
     title: SQS queue
@@ -999,7 +1003,7 @@ config:
     when: logstash_input_sqs_enabled=1
     type: text
     affix: ""
-    required: false
+    required: true
     items: []
   - name: logstash_input_sqs_aws_access_key
     title: SQS AWS access key id and secret access key
@@ -1009,7 +1013,7 @@ config:
     when: logstash_input_sqs_enabled=1
     type: text
     affix: ""
-    required: false
+    required: true
     items: []
   - name: logstash_input_sqs_aws_secret_key
     title: SQS AWS secret access key
@@ -1019,7 +1023,7 @@ config:
     when: logstash_input_sqs_enabled=1
     type: text
     affix: ""
-    required: false
+    required: true
     items: []
   - name: logstash_input_syslog_port
     title: Syslog listen port
@@ -1029,7 +1033,7 @@ config:
     when: logstash_input_syslog_enabled=1
     type: text
     affix: ""
-    required: false
+    required: true
     items: []
   - name: logstash_input_tcp_port
     title: TCP listen port
@@ -1039,7 +1043,7 @@ config:
     when: logstash_input_tcp_enabled=1
     type: text
     affix: ""
-    required: false
+    required: true
     items: []
   - name: logstash_input_udp_port
     title: UDP listen port
@@ -1049,7 +1053,7 @@ config:
     when: logstash_input_udp_enabled=1
     type: text
     affix: ""
-    required: false
+    required: true
     items: []
   - name: logstash_input_unix_path
     title: Path of unix socket
@@ -1059,7 +1063,7 @@ config:
     when: logstash_input_unix_enabled=1
     type: text
     affix: ""
-    required: false
+    required: true
     items: []
   - name: logstash_input_websocket_url
     title: Websocket URL
@@ -1069,7 +1073,7 @@ config:
     when: logstash_input_websocket_enabled=1
     type: text
     affix: ""
-    required: false
+    required: true
     items: []
   - name: logstash_input_zeromq_address
     title: ZeroMQ address
@@ -1079,7 +1083,7 @@ config:
     when: logstash_input_zeromq_enabled=1
     type: text
     affix: ""
-    required: false
+    required: true
     items: []
   - name: logstash_input_zeromq_topology
     title: ZeroMQ topology
@@ -1089,7 +1093,7 @@ config:
     when: logstash_input_zeromq_enabled=1
     type: text
     affix: ""
-    required: false
+    required: true
     items: []
 - name: outputs
   title: Outputs
@@ -1126,7 +1130,7 @@ config:
     when: logstash_output_rollbar_enabled=1
     type: text
     affix: ""
-    required: false
+    required: true
     items: []
   - name: logstash_output_rollbar_environment
     title: Rollbar project environment
@@ -1136,7 +1140,7 @@ config:
     when: logstash_output_rollbar_enabled=1
     type: text
     affix: ""
-    required: false
+    required: true
     items: []
   - name: logstash_output_rollbar_level
     title: Rollbar log level
@@ -1146,7 +1150,7 @@ config:
     when: logstash_output_rollbar_enabled=1
     type: text
     affix: ""
-    required: false
+    required: true
     items: []
   - name: logstash_output_rollbar_format
     title: Rollbar format string
@@ -1156,5 +1160,5 @@ config:
     when: logstash_output_rollbar_enabled=1
     type: text
     affix: ""
-    required: false
+    required: true
     items: []
