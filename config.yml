@@ -90,6 +90,8 @@ components:
   - source: public
     image_name: getelk/logstash
     version: 1.4.2-7
+    instance:
+      min_count: 0  # Prevent logstash from reporting that the app is stopped
     cmd: ""
     publish_events:
     - name: Container getelk/logstash started
