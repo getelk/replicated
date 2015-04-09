@@ -3,7 +3,7 @@
 replicated_api_version: 1
 name: "ELK"
 version: "Alpha"
-release_notes: "Updated Kibana to 4.0.1 and Elasticsearch to 1.5.0"
+release_notes: "New style for login screen."
 properties:
   app_url:  http{{repl if ConfigOptionEquals "https_enabled" "1" }}s{{repl end }}://{{repl ConfigOption "hostname" }}
   logo_url: "http://preview.getelk.com/images/getelk-logo-sm.png"
@@ -221,7 +221,7 @@ components:
     support_files: []
   - source: public
     image_name: getelk/auth
-    version: 0.3.2
+    version: 0.4.0
     cmd: ""
     publish_events:
     - name: Container getelk/auth started
