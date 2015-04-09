@@ -237,7 +237,7 @@ components:
       owner: getelk
       repo: replicated
       path: files/auth_config.yaml
-      ref: 3bac048801f32001095d9d372688803e24f41cce
+      ref: 46658db4b3464d37c1aab5dffe7a1aadc24abe7a
     customer_files: []
     env_vars:
     - name: REPLICATED_AUTH_PASSWORD
