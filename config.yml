@@ -10,8 +10,8 @@ properties:
   console_title: "getELK Admin Installer"
 backup:
   enabled: '{{repl ConfigOptionEquals "backup_enabled" "1" }}'
-  init: ["curl", "-XPUT", "http://{{repl ConfigOption \"hostname\" }}:9200/_snapshot/s3-backup", "-d", "{\"type\": \"s3\", \"settings\": {\"bucket\": \"{{repl ConfigOption \"backup_s3_bucket\" }}\",\"region\": \"{{repl ConfigOption \"backup_s3_region\" }}\", \"access_key\": \"{{repl ConfigOption \"backup_s3_accesskey\" }}\", \"secret_key\": \"{{repl ConfigOption \"backup_s3_secretkey\" }}\"}}"]
-  run: ["curl", "-XPUT", "http://{{repl ConfigOption \"hostname\" }}:9200/_snapshot/s3-backup/getelk-{{repl Now | ToLower }}?wait_for_completion=true"]
+  init: ["curl", "-XPUT", "-f", "http://{{repl ConfigOption \"hostname\" }}:9200/_snapshot/s3-backup", "-d", "{\"type\": \"s3\", \"settings\": {\"bucket\": \"{{repl ConfigOption \"backup_s3_bucket\" }}\",\"region\": \"{{repl ConfigOption \"backup_s3_region\" }}\", \"access_key\": \"{{repl ConfigOption \"backup_s3_accesskey\" }}\", \"secret_key\": \"{{repl ConfigOption \"backup_s3_secretkey\" }}\"}}"]
+  run: ["curl", "-XPUT", "-f", "http://{{repl ConfigOption \"hostname\" }}:9200/_snapshot/s3-backup/getelk-{{repl Now | ToLower }}?wait_for_completion=true"]
 cmds:
 - name: hashkey
   cmd: random
