@@ -1,6 +1,6 @@
 ---
 # Getelk Alpha
-replicated_api_version: 1
+replicated_api_version: 1.0.0
 name: "ELK"
 version: "Alpha"
 release_notes: "New style for login screen."
