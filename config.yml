@@ -348,7 +348,7 @@ config:
   test_proc:
     display_name: Test Authentication
     command: aws_auth
-    timout: 5
+    timeout: 5
     arg_fields:
         - backup_s3_accesskey
         - backup_s3_secretkey
