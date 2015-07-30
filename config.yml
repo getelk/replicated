@@ -376,8 +376,9 @@ config:
     type: text
     required: true
   - name: aws_service
-    type: label
+    type: text
     when: backup_enabled=1
+    readyonly: true
     value: s3
     hidden: true
 - name: inputs
