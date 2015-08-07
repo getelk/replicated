@@ -1,6 +1,6 @@
 replicated_api_version: "1.0.0"
 name: ELK
-version: RC20
+version: RC21
 release_notes: cleaned up the yaml
 properties:
   app_url: http{{repl if ConfigOptionEquals "https_enabled" "1" }}s{{repl end }}://{{repl
@@ -240,9 +240,6 @@ config:
 - name: hostname
   title: Hostname
   description: Ensure this domain name is routable on your network.
-  test_proc:
-    display_name: Test Hostname Resolution
-    command: resolve_host
   items:
   - name: hostname
     title: Hostname
@@ -251,6 +248,9 @@ config:
       value_at: 0
     type: text
     required: true
+    test_proc:
+      display_name: Test Hostname Resolution
+      command: resolve_host
 - name: privacy
   items:
   - name: http_enabled
