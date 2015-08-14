@@ -373,19 +373,23 @@ config:
     title: S3 Bucket Name
     type: text
     required: true
+    when: backup_enabled=1
   - name: backup_s3_region
     title: AWS Region
     default: us-east
     type: text
     required: true
+    when: backup_enabled=1
   - name: backup_s3_accesskey
     title: AWS Access Key ID
     type: text
     required: true
+    when: backup_enabled=1
   - name: backup_s3_secretkey
     title: AWS Secret Access Key
     type: text
     required: true
+    when: backup_enabled=1
   - name: aws_service
     type: text
     readyonly: true
