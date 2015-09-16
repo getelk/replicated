@@ -1,7 +1,7 @@
 replicated_api_version: "1.0.0"
 name: ELK
-version: RC21
-release_notes: cleaned up the yaml
+console_support_markdown: |
+  ##email: support@getelk.com
 properties:
   app_url: http{{repl if ConfigOptionEquals "https_enabled" "1" }}s{{repl end }}://{{repl
     ConfigOption "hostname" }}
@@ -15,23 +15,8 @@ state:
     - '{{repl HostPublicIpAddress "Elasticsearch" "getelk/elasticsearch" }}'
     - "9200"
 backup:
-  enabled: '{{repl ConfigOptionEquals "backup_enabled" "1" }}'
-  init:
-  - curl
-  - -XPUT
-  - -f
-  - http://{{repl ConfigOption "hostname" }}:9200/_snapshot/s3-backup
-  - -d
-  - '{"type": "s3", "settings": {"bucket": "{{repl ConfigOption "backup_s3_bucket"
-    }}","region": "{{repl ConfigOption "backup_s3_region" }}", "access_key": "{{repl
-    ConfigOption "backup_s3_accesskey" }}", "secret_key": "{{repl ConfigOption "backup_s3_secretkey"
-    }}"}}'
-  run:
-  - curl
-  - -XPUT
-  - -f
-  - http://{{repl ConfigOption "hostname" }}:9200/_snapshot/s3-backup/getelk-{{repl
-    Now | ToLower }}?wait_for_completion=true
+  enabled: true
+  pause_all: true
 monitors:
   cpuacct:
   - Elasticsearch,getelk/elasticsearch
@@ -349,52 +334,6 @@ config:
     type: text
     hidden: true
     required: true
-- name: backup
-  title: Backup
-  description: ""
-  items:
-  - name: backup_enabled
-    title: Enable Backups
-    help_text: When enabled, your Elasticsearch data will be backed up to your S3 bucket.
-    default: "0"
-    type: bool
-- name: aws
-  when: backup_enabled=1
-  test_proc:
-    display_name: Test Authentication
-    command: aws_auth
-    timeout: 5
-    arg_fields:
-        - backup_s3_accesskey
-        - backup_s3_secretkey
-        - aws_service
-  items:
-  - name: backup_s3_bucket
-    title: S3 Bucket Name
-    type: text
-    required: true
-    when: backup_enabled=1
-  - name: backup_s3_region
-    title: AWS Region
-    default: us-east
-    type: text
-    required: true
-    when: backup_enabled=1
-  - name: backup_s3_accesskey
-    title: AWS Access Key ID
-    type: text
-    required: true
-    when: backup_enabled=1
-  - name: backup_s3_secretkey
-    title: AWS Secret Access Key
-    type: text
-    required: true
-    when: backup_enabled=1
-  - name: aws_service
-    type: text
-    readyonly: true
-    value: s3
-    hidden: true
 - name: inputs
   title: Inputs
   description: Define inputs for logstash to create
